@@ -55,7 +55,7 @@ class Corpus:
         (la primera si hay mas de una con el mismo largo)
         """
         sentences = list(self.corpus.sents())
-        return max(sentences, key=lambda x: len(x))
+        return max(sentences, key=lambda x: len(nltk.word_tokenize(x)))
 
 
     # c.
