@@ -105,21 +105,23 @@ class Corpus:
 
 
 
-    ## Parte 1.2
+	## Parte 1.2
     # a
     def arbol_min_nodos(self):
         """
         Retorna el árbol del corpus con la mínima cantidad de nodos.
         (el primero si hay mas de uno con la misma cantidad)
         """
-        return # ...
+        trees = self.corpus.parsed_sents()
+        return min(trees, key=lambda tree : len(tree.treepositions()))
 
     def arbol_max_nodos(self):
         """
         Retorna el árbol del corpus con la máxima cantidad de nodos.
         (el primero si hay mas de uno con la misma cantidad)
         """
-        return # ...
+        trees = self.corpus.parsed_sents()
+        return max(trees, key=lambda tree : len(tree.treepositions()))
 
 
     # b
@@ -127,8 +129,8 @@ class Corpus:
         """
         Retorna todos los árboles que contengan alguna palabra con lema 'lema'.
         """
-        # TODO - Posiblemente recursivo por la estructura del corpus
-        return # ...
+        trees = self.corpus.parsed_sents()
+        return filter(lambda tree : lema in tree.leaves(), trees)
 
    
 
