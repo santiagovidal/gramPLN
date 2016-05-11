@@ -192,14 +192,14 @@ class PCFG:
         """
         Generate Viterbi parser from grammar.
         """
-        return # ...
+        return nltk.ViterbiParser(self.grammar)
 
     ## Parte 2.3 (sentences)
     def parse(self, sentence):
         """
         Parse sentence and return ProbabilisticTree.
         """
-        return # ...
+        return self.parser.parse(sentence.split())
 
 
 
