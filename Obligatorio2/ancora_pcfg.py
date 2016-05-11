@@ -19,12 +19,13 @@
 #
 
 
-import nltk
+#import nltk
+from nltk import word_tokenize
 import ancora  # (Modulo para leer AnCora)
 
 # Otros modulos de utilidad
-import collections
-import string
+from collections import defaultdict
+from string import punctuation, split, join
 
 
 # Parte 1 - Corpus
@@ -55,7 +56,7 @@ class Corpus:
         (la primera si hay mas de una con el mismo largo)
         """
         sentences = list(self.corpus.sents())
-        return max(sentences, key=lambda x: len(nltk.word_tokenize(x)))
+        return ' '.join(max(sentences, key=lambda sentence: len(sentence)))
 
 
     # c.
@@ -64,9 +65,7 @@ class Corpus:
         Retorna el largo de oracion promedio.
         """
         sentences = list(self.corpus.sents())
-        #words = list(self.corpus.tagged_words())
-        #return len(words)/len(sentences)
-        return sum([len(nltk.word_tokenize(sentence)) for sentence in sentences])/len(sentences)
+        return sum([len(sentence) for sentence in sentences])/len(sentences)
 
     # d.
     def palabras_frecs(self):
@@ -75,10 +74,11 @@ class Corpus:
         (considerar las palabras en minúsculas)
         """
         tokens = self.corpus.tagged_words()
-        dictionary = collections.defaultdict(lambda: 0)
+        dictionary = defaultdict(lambda: 0)
         for (word,_) in tokens:
-            if word not in string.punctuation: # FIXME - No se si es necesario
-                dictionary[word.lower()] += 1
+            if not word: # OBS - Hay word = None
+                continue
+            dictionary[word.lower()] += 1
         return dictionary
 
     # e.
@@ -89,17 +89,18 @@ class Corpus:
         (considerar las palabras en minúsculas)
         """
         tokens = self.corpus.tagged_words()
-        dictionary = collections.defaultdict(lambda: [])
+        dictionary = defaultdict(lambda: [])
         for (word,category) in tokens:
-            if word not in string.punctuation: # FIXME - No se si es necesario 
-                flag = false
-                for (category2, number) in dictionary[word.lower()]:
-                    if category2 == category:
-                        dictionary[word.lower()].remove((category2, number))
-                        dictionary[word.lower()].append((category2, number+1))
-                        flag = true
-                if not flag:    
-                    dictionary[word.lower()].append((category2, 1))
+            if not word: # OBS - Hay word = None
+                continue
+            if category in map(lambda x:x[0], dictionary[word.lower()]): 
+                dictionary[word.lower()] = [
+                    (current_category, freq) if current_category != category
+                    else (current_category, freq+1)
+                    for (current_category, freq) in dictionary[word.lower()]
+                ]
+            else:   
+                dictionary[word.lower()] = [(category,1)]
         return dictionary
 
 
