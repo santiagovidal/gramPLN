@@ -160,9 +160,10 @@ class PCFG:
         """
         Induce PCFG del corpus.
         """
+		prods = sum((t.productions() for t in corpus.parsed_sents()), [])
 		S = nltk.Nonterminal('sentence')
 		grammar = nltk.induce_pcfg(S, prods)
-        return # ...
+        return grammar
 
     # a
     def reglas_no_lexicas(self):

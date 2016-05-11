@@ -44,13 +44,13 @@ print '%-23s\n%s\n'      % ("palabras_frecs_cat", '\n'.join(map(str,palabras_fre
 
 # 1.2
 arbol_min_nodos = corpus.arbol_min_nodos()
-print '%-23s %i nodos' % ("arbol_min_nodos", len(arbol_min_nodos.treepositions()))
+print '%-23s %i nodos\n' % ("arbol_min_nodos", len(arbol_min_nodos.treepositions()))
 arbol_max_nodos = corpus.arbol_max_nodos()
-print '%-23s %i nodos' % ("arbol_max_nodos", len(arbol_min_nodos.treepositions()))
+print '%-23s %i nodos\n' % ("arbol_max_nodos", len(arbol_max_nodos.treepositions()))
 lema = raw_input("Lema: ")
 N = raw_input("Cantidad a ver: "); N = int(N)
 arboles_con_lema = corpus.arboles_con_lema(lema)
-print '%-23s %i arboles con \'%s\'\n%s' % ("arboles_con_lema", len(arboles_con_lema), lema, '\n'.join(map(str,arboles_con_lema[:N])))
+print '%-23s %i arboles con \'%s\'\n%s\n' % ("arboles_con_lema", len(arboles_con_lema), lema, '\n'.join(map(str,arboles_con_lema[:N])))
 
 
 # ----------------------------
