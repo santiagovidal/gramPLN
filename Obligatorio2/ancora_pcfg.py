@@ -20,7 +20,7 @@
 
 
 #import nltk
-from nltk import word_tokenize
+import nltk
 import ancora  # (Modulo para leer AnCora)
 
 # Otros modulos de utilidad
@@ -160,6 +160,8 @@ class PCFG:
         """
         Induce PCFG del corpus.
         """
+		S = nltk.Nonterminal('sentence')
+		grammar = nltk.induce_pcfg(S, prods)
         return # ...
 
     # a
