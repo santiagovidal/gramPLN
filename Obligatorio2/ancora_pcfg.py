@@ -14,7 +14,7 @@
 #
 #  Estudiante 1:    Nicolás Mechulam Burstin    - 4.933.997-7
 #  Estudiante 2:    Damián Salvia Varela        - 4.452.120-0
-#  Estudiante 3:    Santiago Vidal Aguirre      - 4.651.496-6
+#  Estudiante 3:    Santiago Vidal Aguade      - 4.651.496-6
 #
 #
 
@@ -105,7 +105,7 @@ class Corpus:
 
 
 
-	## Parte 1.2
+    ## Parte 1.2
     # a
     def arbol_min_nodos(self):
         """
@@ -150,7 +150,7 @@ class PCFG:
             ]
 
     def __init__(self):
-        corpus = Corpus()
+        corpus = Corpus("../../ancora-3.0.1es/")
         self.wordfrecs = corpus.palabras_frecs()
         self.grammar = self._induce_pcfg(corpus)
         self.parser  = self._generate_parser()
@@ -160,9 +160,9 @@ class PCFG:
         """
         Induce PCFG del corpus.
         """
-		prods = sum((t.productions() for t in corpus.parsed_sents()), [])
-		S = nltk.Nonterminal('sentence')
-		grammar = nltk.induce_pcfg(S, prods)
+        prods = sum((t.productions() for t in corpus.corpus.parsed_sents()), [])
+        S = nltk.Nonterminal('sentence')
+        grammar = nltk.induce_pcfg(S, prods)
         return grammar
 
     # a
@@ -170,14 +170,16 @@ class PCFG:
         """
         Retornas las reglas que no son léxicas.
         """
-        return # ...
+        return filter(lambda rule: rule.is_nonlexical(), self.grammar.productions())
 
     # b 
     def categorias_lexicas(self):
         """
         Retorna las categorías léxicas (se infieren de las reglas léxicas).
         """
-        return # ...
+        # Primero filtra las reglas lexicas, y despues se queda con el lado izquierdo de la regla
+        # O sea el "lhs"
+        return map(lambda x: x.lhs(), filter(lambda rule: rule.is_lexical(), self.grammar.productions()))
         
 
     # c
@@ -185,7 +187,7 @@ class PCFG:
         """
         Retorna las reglas léxicas de categoría 'c'
         """
-        return # ...
+        return filter(lambda rule: rule.is_lexical() and rule.lhs() == c, self.grammar.productions())
 
     ## Parte 2.2 (parser)
     def _generate_parser(self):
@@ -216,13 +218,27 @@ class PCFG_UNK(PCFG):
                 u'Pedro y Juan jugarán el campeonato de fútbol .', #b 
             ]
 
-
     # Parte 3.1
     def _induce_pcfg(self, corpus):
         """
         Induce PCFG grammar del corpus (treebank) considerando palabras UNK.
         """
-        return # ...
+        prods = sum((t.productions() for t in corpus.corpus.parsed_sents()), [])
+        one_time_words = filter(lambda word: self.wordfrecs[word] == 1, self.wordfrecs.keys())
+        unk_symbol = nltk.Nonterminal("UNK")
+
+        aux = 0
+        total = len(prods)
+        for prod in prods:
+            aux = aux + 1
+            print "Checking " + str(aux) + "/" + str(total)
+            if len(prod.rhs()) == 1 and prod.rhs()[0] in one_time_words:
+                print "DEBUG: Regla sustituida por UNK"
+                prods.remove(prod)
+                prods.append(nltk.Production(prod.lhs(),[unk_symbol]))
+
+        S = nltk.Nonterminal('sentence')
+        return nltk.induce_pcfg(S, prods)
 
 
     # Parte 3.2 (y 3.3)
