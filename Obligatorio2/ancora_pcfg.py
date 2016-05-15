@@ -14,7 +14,7 @@
 #
 #  Estudiante 1:    Nicolás Mechulam Burstin    - 4.933.997-7
 #  Estudiante 2:    Damián Salvia Varela        - 4.452.120-0
-#  Estudiante 3:    Santiago Vidal Aguade      - 4.651.496-6
+#  Estudiante 3:    Santiago Vidal Aguade      	- 4.651.496-6
 #
 #
 
@@ -88,21 +88,17 @@ class Corpus:
         Cada lista contiene la frecuencia por cada categoría de la palabra.
         (considerar las palabras en minúsculas)
         """
-        tokens = self.corpus.tagged_words()
+        from itertools import groupby
+        tokens = sorted(self.corpus.tagged_words(),key=lambda x:x[0])
         dictionary = defaultdict(lambda: [])
-        for (word,category) in tokens:
-            if not word: # OBS - Hay word = None
-                continue
-            if category in map(lambda x:x[0], dictionary[word.lower()]): 
-                dictionary[word.lower()] = [
-                    (current_category, freq) if current_category != category
-                    else (current_category, freq+1)
-                    for (current_category, freq) in dictionary[word.lower()]
-                ]
-            else:   
-                dictionary[word.lower()] = [(category,1)]
+        for word,word_category_lst in groupby(tokens,lambda x:x[0]):
+            if not word: continue # OBS - Hay word = None
+            categories_word = sorted(map(lambda x:x[1],list(word_category_lst)))
+            dictionary[word.lower()] = sum((
+                    [(category,len(list(set_same_category)))] # (cat,cant)
+                        for category,set_same_category in groupby(categories_word,lambda x:x)
+                ),[])
         return dictionary
-
 
 
     ## Parte 1.2
@@ -126,13 +122,34 @@ class Corpus:
 
     # b
     def arboles_con_lema(self, lema):
-        """
-        Retorna todos los árboles que contengan alguna palabra con lema 'lema'.
-        """
-        trees = self.corpus.parsed_sents()
-        return filter(lambda tree : lema in tree.leaves(), trees)
-
-   
+		"""
+		Retorna todos los árboles que contengan alguna palabra con lema 'lema'.
+		"""
+		#trees = self.corpus.parsed_sents() # FIXME - El corpus da palabras, no lemas. ¿Que hacer?
+		#return filter(lambda tree : lema in tree.leaves(), trees)
+		from nltk import tree
+		from nltk.corpus.reader.util import concat
+		from nltk.util import LazyMap
+		parsed_sents = self.corpus.parsed_sents()
+		def lemmatized(element): # Subprocedimiento recursivo que deja en las hojas los lemas
+			if element:
+				subtrees = map(lemmatized, element)
+				subtrees = [t for t in subtrees if t is not None]
+				return tree.Tree(element.tag, subtrees)
+			else:
+				if element.get('elliptic') == 'yes':
+					return None
+				else:
+					return tree.Tree(element.get('lem') or 'unk', [element.get('wd')])
+		fileids = self.corpus.xmlreader.fileids()
+		lemmatized_sents = LazyMap(lemmatized, concat([list(self.corpus.xmlreader.xml(fileid)) for fileid in fileids]))
+		trees_with_lemma = []
+		for i in range(len(parsed_sents)):
+			words_for_lemma = set([subtree.leaves()[0] 
+								   for subtree in lemmatized_sents[i].subtrees(lambda s: s.label() == lema)])
+			if any([word in words_for_lemma for word in parsed_sents[i].leaves()]):
+				trees_with_lemma.append(parsed_sents[i])
+		return trees_with_lemma   
 
 
 # Parte 2 - PCFG y Parsing
@@ -149,8 +166,8 @@ class PCFG:
                 u'El domingo próximo se presenta la nueva temporada de ópera .', #c
             ]
 
-    def __init__(self):
-        corpus = Corpus("../../ancora-3.0.1es/")
+    def __init__(self, corpus_path='./relative-path/'): # FIXME - Antes no existía 'corpus_path'
+        corpus = Corpus(corpus_path)
         self.wordfrecs = corpus.palabras_frecs()
         self.grammar = self._induce_pcfg(corpus)
         self.parser  = self._generate_parser()

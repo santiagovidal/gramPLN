@@ -14,15 +14,16 @@
 #
 #  Estudiante 1: 	Nicolás Mechulam Burstin 	- 4.933.997-7
 #  Estudiante 2: 	Damián Salvia Varela 		- 4.452.120-0
-#  Estudiante 3: 	Santiago Vidal Aguirre 	- 4.651.496-6
+#  Estudiante 3: 	Santiago Vidal Aguade 		- 4.651.496-6
 #
 #
 
 from ancora_pcfg import Corpus
-from string import split
+from string import split,join
+from random import randint
 
 # Cofiguracion
-path= raw_input("Relative path: ") # 'C:/data/ancora-3.0.1es/'
+path= raw_input("Relative path: ")
 if not path: path = 'C:/data/ancora-3.0.1es/'
 
 # ----------------------------
@@ -31,26 +32,24 @@ if not path: path = 'C:/data/ancora-3.0.1es/'
 corpus = Corpus(path)
 # 1.1
 cant_oraciones         = corpus.cant_oraciones()
-print '%-23s %i\n'      % ("cant_oraciones", cant_oraciones)
+print '%-23s %i\n'     % ("cant_oraciones", cant_oraciones)
 oracion_mas_larga      = corpus.oracion_mas_larga()
-print '%-23s (%i) %s\n' % ("oracion_mas_larga", len(oracion_mas_larga.split(' ')), oracion_mas_larga[:50]+"...")
+print '%-23s %i palabras\n\t%s\n' % ("oracion_mas_larga", len(oracion_mas_larga.split(' ')), oracion_mas_larga[:50]+"...")
 largo_promedio_oracion = corpus.largo_promedio_oracion()
-print '%-23s %i\n'      % ("largo_promedio_oracion", largo_promedio_oracion)
-N = raw_input("Cantidad a ver: "); N = int(N)
+print '%-23s %i\n'     % ("largo_promedio_oracion", largo_promedio_oracion)
 palabras_frecs         = corpus.palabras_frecs()
-print '%-23s\n%s\n'      % ("palabras_frecs", '\n'.join(map(str,palabras_frecs.items()[:N])))
+print '%-23s\n\t%s\n'  % ("palabras_frecs", '\n\t'.join(map(str,sorted(palabras_frecs.items(),key=lambda x:x[1],reverse=True)[:20])))
 palabras_frecs_cat     = corpus.palabras_frecs_cat()
-print '%-23s\n%s\n'      % ("palabras_frecs_cat", '\n'.join(map(str,palabras_frecs_cat.items()[:N])))
+print '%-23s\n\t%s\n'  % ("palabras_frecs_cat", '\n\t'.join(map(str,sorted(palabras_frecs_cat.items(),key=lambda x:len(x[1]),reverse=True)[:20])))
 
 # 1.2
-arbol_min_nodos = corpus.arbol_min_nodos()
+arbol_min_nodos 		 = corpus.arbol_min_nodos()
 print '%-23s %i nodos\n' % ("arbol_min_nodos", len(arbol_min_nodos.treepositions()))
-arbol_max_nodos = corpus.arbol_max_nodos()
+arbol_max_nodos 		 = corpus.arbol_max_nodos()
 print '%-23s %i nodos\n' % ("arbol_max_nodos", len(arbol_max_nodos.treepositions()))
-lema = raw_input("Lema: ")
-N = raw_input("Cantidad a ver: "); N = int(N)
-arboles_con_lema = corpus.arboles_con_lema(lema)
-print '%-23s %i arboles con \'%s\'\n%s\n' % ("arboles_con_lema", len(arboles_con_lema), lema, '\n'.join(map(str,arboles_con_lema[:N])))
+lema = "mostrar"
+arboles_con_lema 		 = corpus.arboles_con_lema(lema)
+print '%-23s %i arboles con \'%s\'\n\tEjemplo: %s\n' % ("arboles_con_lema", len(arboles_con_lema), lema,' '.join(arboles_con_lema[randint(0,len(arboles_con_lema))].leaves()))
 
 
 # ----------------------------
