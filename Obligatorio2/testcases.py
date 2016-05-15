@@ -18,9 +18,10 @@
 #
 #
 
-from ancora_pcfg import Corpus
+from ancora_pcfg import Corpus, PCFG, PCFG_UNK, PCFG_LEX, PCFG_LEX_VERB
 from string import split,join
 from random import randint
+from nltk.grammar import Nonterminal
 
 # Cofiguracion
 path= raw_input("Relative path: ")
@@ -57,26 +58,52 @@ print '%-23s %i arboles con \'%s\'\n\t%s\n' % ("arboles_con_lema", len(arboles_c
 # ----------------------------
 # class PCFG
 # ----------------------------
-pcfg = PCFG(path)
+#pcfg = PCFG(path)
+pcfg = PCFG(corpus)
+# 2.1
 print "\n====================== PARTE 2.1 ======================\n"
+print '%-23s %i reglas\n' % ("_indice_pcfg",len(pcfg.grammar.productions()))
+
+# a
+reglas_no_lexicas = pcfg.reglas_no_lexicas()
+print '%-23s %i reglas\n' % ("reglas_no_lexicas",len(reglas_no_lexicas))
+
+# b
+categorias_lexicas = pcfg.categorias_lexicas()
+print '%-23s %i reglas\n' % ("categorias_lexicas",len(categorias_lexicas))
+
+# c
+categoria = "sentence"
+reglas_lexicas = pcfg.reglas_lexicas(Nonterminal(categoria))
+print '%-23s %i reglas para \'%s\'\n' % ("reglas_lexicas",len(reglas_lexicas),categoria)
 
 
+# 2.2
+print '%-23s %s\n' % ("_generate_parser",str(pcfg.parser))
+
+# 2.3
+parse_a = pcfg.parse(pcfg.sents[0])
+parse_b = pcfg.parse(pcfg.sents[1])
+parse_c = pcfg.parse(pcfg.sents[2])
+print '%-23s \n%s\n%s\n%s\n' % ("parse",
+	"\t---- A ----\n\t"+len(list(parse_a)),
+	"\t---- B ----\n\t"+len(list(parse_b)),
+	"\t---- C ----\n\t"+len(list(parse_c)))
 
 # ----------------------------
 # class PCFG_UNK
 # ----------------------------
+pcfg_unk = PCFG_UNK(corpus)
 print "\n====================== PARTE 3.1 ======================\n"
-pcfg_unk = PCFG_UNK(path)
-
 
 # ----------------------------
 # class PCFG_LEX
 # ----------------------------
+pcfg_lex = PCFG_LEX(corpus)
 print "\n====================== PARTE 4.1 ======================\n"
-pcfg_lex = PCFG_LEX(path)
 
 # ----------------------------
 # class PCFG_LEX_VERB
 # ----------------------------
+pcfg_lex_verb = PCFG_LEX_VERB(corpus)
 print "\n====================== PARTE 4.2 ======================\n"
-pcfg_lex_verb = PCFG_LEX_VERB(path)

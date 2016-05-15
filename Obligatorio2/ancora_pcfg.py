@@ -147,6 +147,8 @@ class Corpus:
 		#trees = self.corpus.parsed_sents() # FIXME - El corpus da palabras, no lemas. ¿Que hacer?
 		#return filter(lambda tree : lema in tree.leaves(), trees)
 
+		
+		
 # Parte 2 - PCFG y Parsing
 ###########################
 
@@ -161,8 +163,8 @@ class PCFG:
                 u'El domingo próximo se presenta la nueva temporada de ópera .', #c
             ]
 
-    def __init__(self, corpus_path='./relative-path/'): # FIXME - Antes no existía 'corpus_path'
-        corpus = Corpus(corpus_path)
+    def __init__(self, corpus):#corpus_path='./relative-path/'): # FIXME - Antes no existía 'corpus_path'
+        #corpus = Corpus(corpus_path)
         self.wordfrecs = corpus.palabras_frecs()
         self.grammar = self._induce_pcfg(corpus)
         self.parser  = self._generate_parser()
