@@ -31,6 +31,7 @@ if not path: path = 'C:/data/ancora-3.0.1es/'
 # ----------------------------
 corpus = Corpus(path)
 # 1.1
+print "\n====================== PARTE 1.1 ======================\n"
 cant_oraciones         = corpus.cant_oraciones()
 print '%-23s %i\n'     % ("cant_oraciones", cant_oraciones)
 oracion_mas_larga      = corpus.oracion_mas_larga()
@@ -43,27 +44,39 @@ palabras_frecs_cat     = corpus.palabras_frecs_cat()
 print '%-23s\n\t%s\n'  % ("palabras_frecs_cat", '\n\t'.join(map(str,sorted(palabras_frecs_cat.items(),key=lambda x:len(x[1]),reverse=True)[:20])))
 
 # 1.2
+print "\n====================== PARTE 1.2 ======================\n"
 arbol_min_nodos 		 = corpus.arbol_min_nodos()
 print '%-23s %i nodos\n' % ("arbol_min_nodos", len(arbol_min_nodos.treepositions()))
 arbol_max_nodos 		 = corpus.arbol_max_nodos()
 print '%-23s %i nodos\n' % ("arbol_max_nodos", len(arbol_max_nodos.treepositions()))
 lema = "mostrar"
 arboles_con_lema 		 = corpus.arboles_con_lema(lema)
-print '%-23s %i arboles con \'%s\'\n\tEjemplo: %s\n' % ("arboles_con_lema", len(arboles_con_lema), lema,' '.join(arboles_con_lema[randint(0,len(arboles_con_lema))].leaves()))
+print '%-23s %i arboles con \'%s\'\n\t%s\n' % ("arboles_con_lema", len(arboles_con_lema), lema,' '.join(arboles_con_lema[randint(0,len(arboles_con_lema))].leaves()))
 
 
 # ----------------------------
 # class PCFG
 # ----------------------------
+pcfg = PCFG(path)
+print "\n====================== PARTE 2.1 ======================\n"
 
 
 
 # ----------------------------
 # class PCFG_UNK
 # ----------------------------
-
+print "\n====================== PARTE 3.1 ======================\n"
+pcfg_unk = PCFG_UNK(path)
 
 
 # ----------------------------
 # class PCFG_LEX
 # ----------------------------
+print "\n====================== PARTE 4.1 ======================\n"
+pcfg_lex = PCFG_LEX(path)
+
+# ----------------------------
+# class PCFG_LEX_VERB
+# ----------------------------
+print "\n====================== PARTE 4.2 ======================\n"
+pcfg_lex_verb = PCFG_LEX_VERB(path)

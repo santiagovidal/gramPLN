@@ -125,32 +125,27 @@ class Corpus:
 		"""
 		Retorna todos los árboles que contengan alguna palabra con lema 'lema'.
 		"""
-		#trees = self.corpus.parsed_sents() # FIXME - El corpus da palabras, no lemas. ¿Que hacer?
-		#return filter(lambda tree : lema in tree.leaves(), trees)
+		parsed_sents = self.corpus.parsed_sents()
+		
 		from nltk import tree
 		from nltk.corpus.reader.util import concat
 		from nltk.util import LazyMap
-		parsed_sents = self.corpus.parsed_sents()
-		def lemmatized(element): # Subprocedimiento recursivo que deja en las hojas los lemas
+		def lemmatized(element): # Auxiliar - Por cada arbol obtiene las palabras para "lema"
 			if element:
-				subtrees = map(lemmatized, element)
-				subtrees = [t for t in subtrees if t is not None]
-				return tree.Tree(element.tag, subtrees)
+				sublist = map(lemmatized, element)
+				sublist = [t for t in sublist if t is not None]
+				return sum(sublist,[])
 			else:
-				if element.get('elliptic') == 'yes':
-					return None
-				else:
-					return tree.Tree(element.get('lem') or 'unk', [element.get('wd')])
+				if element.get('elliptic') == 'yes': return None
+				elif element.get('lem') == lema: return [element.get('wd')]
+				else: return []
 		fileids = self.corpus.xmlreader.fileids()
 		lemmatized_sents = LazyMap(lemmatized, concat([list(self.corpus.xmlreader.xml(fileid)) for fileid in fileids]))
-		trees_with_lemma = []
-		for i in range(len(parsed_sents)):
-			words_for_lemma = set([subtree.leaves()[0] 
-								   for subtree in lemmatized_sents[i].subtrees(lambda s: s.label() == lema)])
-			if any([word in words_for_lemma for word in parsed_sents[i].leaves()]):
-				trees_with_lemma.append(parsed_sents[i])
-		return trees_with_lemma   
 
+		return map(lambda x:x[0], filter(lambda x: any([word in x[1] for word in x[0].leaves()]),
+                          zip(parsed_sents,lemmatized_sents)))   
+		#trees = self.corpus.parsed_sents() # FIXME - El corpus da palabras, no lemas. ¿Que hacer?
+		#return filter(lambda tree : lema in tree.leaves(), trees)
 
 # Parte 2 - PCFG y Parsing
 ###########################
