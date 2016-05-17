@@ -52,14 +52,14 @@ arbol_max_nodos 		 = corpus.arbol_max_nodos()
 print '%-23s %i nodos\n' % ("arbol_max_nodos", len(arbol_max_nodos.treepositions()))
 lema = "mostrar"
 arboles_con_lema 		 = corpus.arboles_con_lema(lema)
-print '%-23s %i arboles con \'%s\'\n\t%s\n' % ("arboles_con_lema", len(arboles_con_lema), lema,' '.join(arboles_con_lema[randint(0,len(arboles_con_lema))].leaves()))
+print '%-23s %i arboles con \'%s\'\n\t%s\n' % ("arboles_con_lema", len(arboles_con_lema), lema,' '.join(arboles_con_lema[randint(0,len(arboles_con_lema)-1)].leaves()))
 
 
 # ----------------------------
 # class PCFG
 # ----------------------------
 #pcfg = PCFG(path)
-pcfg = PCFG(corpus)
+pcfg = PCFG(path)
 # 2.1
 print "\n====================== PARTE 2.1 ======================\n"
 print '%-23s %i reglas\n' % ("_indice_pcfg",len(pcfg.grammar.productions()))
@@ -93,17 +93,17 @@ print '%-23s \n%s\n%s\n%s\n' % ("parse",
 # ----------------------------
 # class PCFG_UNK
 # ----------------------------
-pcfg_unk = PCFG_UNK(corpus)
+pcfg_unk = PCFG_UNK(path)
 print "\n====================== PARTE 3.1 ======================\n"
 
 # ----------------------------
 # class PCFG_LEX
 # ----------------------------
-pcfg_lex = PCFG_LEX(corpus)
+pcfg_lex = PCFG_LEX(path)
 print "\n====================== PARTE 4.1 ======================\n"
 
 # ----------------------------
 # class PCFG_LEX_VERB
 # ----------------------------
-pcfg_lex_verb = PCFG_LEX_VERB(corpus)
+pcfg_lex_verb = PCFG_LEX_VERB(path)
 print "\n====================== PARTE 4.2 ======================\n"
