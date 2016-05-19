@@ -239,17 +239,17 @@ class PCFG_UNK(PCFG):
         """
         prods = sum((t.productions() for t in corpus.corpus.parsed_sents()), [])
         one_time_words = filter(lambda word: self.wordfrecs[word] == 1, self.wordfrecs.keys())
-        unk_symbol = nltk.Nonterminal("UNK")
+        unk_string = "UNK"
 
-        aux = 0
-        total = len(prods)
+        # aux = 0
+        # total = len(prods)
         for prod in prods:
-            aux = aux + 1
-            print "Checking " + str(aux) + "/" + str(total)
-            if len(prod.rhs()) == 1 and prod.rhs()[0] in one_time_words:
-                print "DEBUG: Regla sustituida por UNK"
+            # aux = aux + 1
+            # print "Checking " + str(aux) + "/" + str(total)
+            if prod.is_lexical() and prod.rhs()[0] in one_time_words:
+                # print "DEBUG: Regla sustituida por UNK"
                 prods.remove(prod)
-                prods.append(nltk.Production(prod.lhs(),[unk_symbol]))
+                prods.append(nltk.Production(prod.lhs(),[unk_string]))
 
         S = nltk.Nonterminal('sentence')
         return nltk.induce_pcfg(S, prods)
@@ -261,7 +261,15 @@ class PCFG_UNK(PCFG):
         """
         Retorna el análisis sintáctico de la oración contemplando palabras UNK.
         """
-        return # ...
+        words = sentence.split()
+        new_sentence = []
+        for word in words:
+            if (word.lower() not in self.wordfrecs.keys()) or self.wordfrecs[word.lower()] == 1:
+                new_sentence.append("UNK")
+            else:
+                new_sentence.append(word)
+
+        return self.parser.parse(new_sentence)
 
 
 
