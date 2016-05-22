@@ -34,11 +34,11 @@ if not path: path = 'C:/data/ancora-3.0.1es/'
 def timer(start,end):
 	hours, rem = divmod(end-start, 3600)
 	minutes, seconds = divmod(rem, 60)
-	print("{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds))
+	print "{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds)
 
 # Cargar instancias del problema - FIXME: Demora horas
 ini = time.time()
-for i in range(2):
+for i in range(5):
 	name = "Corpus" if i == 0 else "PCFG" if i == 1 else "PCFG_UNK" if i == 2 else "PCFG_LEX" if i == 3 else "PCFG_LEX_VERB"
 	print " (%i/5) Cargando %s...\r" % (i+1,name),
 	if   i == 0 : corpus = Corpus(path)
@@ -47,6 +47,7 @@ for i in range(2):
 	elif i == 3	: pcfg_lex = PCFG_LEX(path)
 	elif i == 4 : pcfg_lex_verb = PCFG_LEX_VERB(path)
 end = time.time()
+print '\r',' '*20,"\rTiempo transcurrido:"
 timer(ini,end)
 raw_input("Listo. Enter para continuar...")
 
