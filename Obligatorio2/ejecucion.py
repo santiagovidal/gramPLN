@@ -38,7 +38,7 @@ def timer(start,end):
 
 # Cargar instancias del problema - FIXME: Demora horas
 ini = time.time()
-for i in range(4):
+for i in range(2):
 	name = "Corpus" if i == 0 else "PCFG" if i == 1 else "PCFG_UNK" if i == 2 else "PCFG_LEX" if i == 3 else "PCFG_LEX_VERB"
 	print " (%i/5) Cargando %s...\r" % (i+1,name),
 	if   i == 0 : corpus = Corpus(path)
@@ -48,6 +48,7 @@ for i in range(4):
 	elif i == 4 : pcfg_lex_verb = PCFG_LEX_VERB(path)
 end = time.time()
 timer(ini,end)
+raw_input("Listo. Enter para continuar...")
 
 # Entrada/Salida
 def print_menu():
@@ -127,97 +128,50 @@ def make(op):
 	elif op == 9:
 		sent = pcfg.sents[0]
 		parsed = pcfg.parse(sent)
-		parsed = [t for t in parsed]
-		print "\rOracion:",sent
-		print len(parsed),"reconocedores"
-		print "** Ejemplo **"
-		print parsed[randint(0,len(parsed))]
 	elif op == 10:
 		sent = pcfg.sents[1]
 		parsed = pcfg.parse(sent)
-		parsed = [t for t in parsed]
-		print "\rOracion:",sent
-		print len(parsed),"reconocedores"
-		print parsed[randint(0,len(parsed))]
 	elif op == 11:
 		sent = pcfg.sents[2]
 		parsed = pcfg.parse(sent)
-		parsed = [t for t in parsed]
-		print "\rOracion:",sent
-		print len(parsed),"reconocedores"
-		print parsed[randint(0,len(parsed))]
 	elif op == 12:
 		sent = pcfg_unk.sents[0]
 		parsed = pcfg_unk.parse(sent)
-		parsed = [t for t in parsed]
-		print "\rOracion:",sent
-		print len(parsed),"reconocedores"
-		print parsed[randint(0,len(parsed))]
 	elif op == 13:
 		sent = pcfg_unk.sents[1]
 		parsed = pcfg_unk.parse(sent)
-		parsed = [t for t in parsed]
-		print "\rOracion:",sent
-		print len(parsed),"reconocedores"
-		print parsed[randint(0,len(parsed))]
 	elif op == 14:
 		sent = pcfg_lex.sents[0]
 		parsed = pcfg.parse(sent)
-		parsed = [t for t in parsed]
-		print "\rOracion:",sent
-		print len(parsed),"reconocedores"
-		print parsed[randint(0,len(parsed))]
 	elif op == 15:
 		sent = pcfg_lex.sents[0]
 		parsed = pcfg_lex.parse(sent)
-		parsed = [t for t in parsed]
-		print "\rOracion:",sent
-		print len(parsed),"reconocedores"
-		print parsed[randint(0,len(parsed))]
 	elif op == 16:
 		sent = pcfg_lex_verb.sents[0]
 		parsed = pcfg_lex.parse(sent)
-		parsed = [t for t in parsed]
-		print "\rOracion:",sent
-		print len(parsed),"reconocedores"
-		print parsed[randint(0,len(parsed))]
 	elif op == 17:
 		sent = pcfg_lex_verb.sents[1]
 		parsed = pcfg_lex.parse(sent)
-		parsed = [t for t in parsed]
-		print "\rOracion:",sent
-		print len(parsed),"reconocedores"
-		print parsed[randint(0,len(parsed))]
 	elif op == 18:
 		sent = pcfg_lex_verb.sents[0]
 		parsed = pcfg_lex_verb.parse(sent)
-		parsed = [t for t in parsed]
-		print "\rOracion:",sent
-		print len(parsed),"reconocedores"
-		print parsed[randint(0,len(parsed))]
 	elif op == 19:
 		sent = pcfg_lex_verb.sents[1]
 		parsed = pcfg_lex_verb.parse(sent)
-		parsed = [t for t in parsed]
-		print "\rOracion:",sent
-		print len(parsed),"reconocedores"
-		print parsed[randint(0,len(parsed))]
 	elif op == 20:
 		sent = pcfg_lex_verb.sents[2]
 		parsed = pcfg_lex.parse(sent)
-		parsed = [t for t in parsed]
-		print "\rOracion:",sent
-		print len(parsed),"reconocedores"
-		print parsed[randint(0,len(parsed))]
 	elif op == 21:
 		sent = pcfg_lex_verb.sents[2]
 		parsed = pcfg_lex_verb.parse(sent)
-		parsed = [t for t in parsed]
-		print "\rOracion:",sent
-		print len(parsed),"reconocedores"
-		print parsed[randint(0,len(parsed))]
 	else:
 		print "Comando no valido!"
+	if op in range(9,22):
+		parsed = [t for t in parsed]
+		print "\rOracion:\n",sent,"\n"
+		print len(parsed),"reconocedores\n"
+		print "** Ejemplo **"
+		print parsed[randint(0,len(parsed)-1)]
 
 # Principal
 while True:
