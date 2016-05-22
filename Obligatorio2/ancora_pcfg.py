@@ -28,9 +28,30 @@ from collections import defaultdict
 from string import punctuation, split, join
 
 
+# Auxiliares
+#############
+def lemmatized_sents(corpus,fileids=None):
+	from nltk import tree
+	from nltk.corpus.reader.util import concat
+	from nltk.util import LazyMap
+	def lemmatized(element):
+		if element:
+			# element viewed as a list is non-empty (it has subelements)
+			subtrees = map(lemmatized, element)
+			subtrees = [t for t in subtrees if t is not None]
+			return tree.Tree(element.tag, subtrees)
+		else:
+			# element viewed as a list is empty. we are in a terminal.
+			if element.get('elliptic') == 'yes':
+				return None
+			else:
+				return tree.Tree(element.get('pos') or element.get('ne') or 'unk', [(element.get('wd'),element.get('lem'))])
+	if not fileids:
+		fileids = corpus.xmlreader.fileids()
+	return LazyMap(lemmatized, concat([list(corpus.xmlreader.xml(fileid)) for fileid in fileids]))
+
 # Parte 1 - Corpus
 ###################
-
 class Corpus:
     """
     Clase de funcionalidades sobre el corpus AnCora.
@@ -126,27 +147,11 @@ class Corpus:
 		Retorna todos los árboles que contengan alguna palabra con lema 'lema'.
 		"""
 		parsed_sents = self.corpus.parsed_sents()
+		lemmatized_sents = lemmatized_sents(self.corpus)
 		
-		from nltk import tree
-		from nltk.corpus.reader.util import concat
-		from nltk.util import LazyMap
-		def lemmatized(element): # Auxiliar - Por cada arbol obtiene las palabras para "lema"
-			if element:
-				sublist = map(lemmatized, element)
-				sublist = [t for t in sublist if t is not None]
-				return sum(sublist,[])
-			else:
-				if element.get('elliptic') == 'yes': return None
-				elif element.get('lem') == lema: return [element.get('wd')]
-				else: return []
-		fileids = self.corpus.xmlreader.fileids()
-		lemmatized_sents = LazyMap(lemmatized, concat([list(self.corpus.xmlreader.xml(fileid)) for fileid in fileids]))
-
-		return map(lambda x:x[0], filter(lambda x: any([word in x[1] for word in x[0].leaves()]),
-                          zip(parsed_sents,lemmatized_sents)))   
-		#trees = self.corpus.parsed_sents() # FIXME - El corpus da palabras, no lemas. ¿Que hacer?
-		#return filter(lambda tree : lema in tree.leaves(), trees)
-
+		return map(lambda x:x[0], 
+					filter( lambda x: any([lem == lema for (_,lem) in x[1].leaves()]), 
+							zip(parsed_sents,lemmatized_sents)))   
 		
 		
 # Parte 2 - PCFG y Parsing
@@ -239,7 +244,6 @@ class PCFG_UNK(PCFG):
         """
         prods = sum((t.productions() for t in corpus.corpus.parsed_sents()), [])
         one_time_words = filter(lambda word: self.wordfrecs[word] == 1, self.wordfrecs.keys())
-        unk_string = "UNK"
 
         # aux = 0
         # total = len(prods)
@@ -247,16 +251,15 @@ class PCFG_UNK(PCFG):
             # aux = aux + 1
             # print "Checking " + str(aux) + "/" + str(total)
             if prod.is_lexical() and prod.rhs()[0] in one_time_words:
-                # print "DEBUG: Regla sustituida por UNK"
+                # print "DEBUG: Sustituye \'%s -> %s\' por \'%s -> UNK\''" % (prod.lhs(),prod.rhs()[0],prod.lhs())
                 prods.remove(prod)
-                prods.append(nltk.Production(prod.lhs(),[unk_string]))
+                prods.append(nltk.Production(prod.lhs(),["UNK"]))
 
         S = nltk.Nonterminal('sentence')
         return nltk.induce_pcfg(S, prods)
 
 
     # Parte 3.2 (y 3.3)
-
     def parse(self, sentence):
         """
         Retorna el análisis sintáctico de la oración contemplando palabras UNK.
@@ -277,27 +280,41 @@ class PCFG_UNK(PCFG):
 ##############################
 
 # 1
-
 class PCFG_LEX(PCFG):
     """
     PCFG de AnCora con lexicalización en primer nivel.
     """
 
-    sents = [   u'El juez vino que avión .', #
+    sents = [   u'El juez vino que avión .', # a
             ]                
 
     def _induce_pcfg(self, corpus):
-        """
-        Induce PCFG del corpus considerando lexicalización en primer nivel.
-        """
-        return # ...
+		"""
+		Induce PCFG del corpus considerando lexicalización en primer nivel.
+		"""
+		prods = sum((t.productions() for t in lemmatized_sents(corpus.corpus)), [])
+		
+		# aux = 0
+		# total = len(prods)
+		for prod in prods:
+			# aux = aux + 1
+			# print "Checking " + str(aux) + "/" + str(total)
+			if prod.is_lexical():
+				# print "DEBUG: Sustituye \'%s\' por \'%s\' y \'%s\'" % (
+					# "%s -> %s"%(prod.lhs(),prod.rhs()[0][0]),
+					# "%s -> Lem(%s)"%(prod.lhs(),prod.rhs()[0][1]),
+					# "Lem(%s) -> %s"%(prod.rhs()[0][1],prod.rhs()[0][0])
+				# )
+				prods.remove(prod)
+				word,lema = prod.rhs()[0]
+				prods.append(nltk.Production(prod.lhs(), [lema]))
+				prods.append(nltk.Production("lem(%s)"%lema, [word]))
 
-
-
+		S = nltk.Nonterminal('sentence')
+		return nltk.induce_pcfg(S, prods)
 
 
 # 2
-
 class PCFG_LEX_VERB(PCFG):
     """
     PCFG de AnCora con lexicalización en primer nivel y grupos verbales (grup.verb).

@@ -82,13 +82,17 @@ print '%-23s %i reglas para \'%s\'\n' % ("reglas_lexicas",len(reglas_lexicas),ca
 print '%-23s %s\n' % ("_generate_parser",str(pcfg.parser))
 
 # 2.3
-parse_a = pcfg.parse(pcfg.sents[0])
-parse_b = pcfg.parse(pcfg.sents[1])
-parse_c = pcfg.parse(pcfg.sents[2])
-print '%-23s \n%s\n%s\n%s\n' % ("parse",
-	"\t---- A ----\n\t"+len(list(parse_a)),
-	"\t---- B ----\n\t"+len(list(parse_b)),
-	"\t---- C ----\n\t"+len(list(parse_c)))
+parsed = pcfg.parse(pcfg.sents[0])
+print "(2.3.A)"
+print parsed
+
+parsed = pcfg.parse(pcfg.sents[1])
+print "(2.3.B)"
+print parsed
+
+parsed = pcfg.parse(pcfg.sents[2])
+print "(2.3.C)"
+print parsed
 
 # ----------------------------
 # class PCFG_UNK
@@ -96,14 +100,54 @@ print '%-23s \n%s\n%s\n%s\n' % ("parse",
 pcfg_unk = PCFG_UNK(path)
 print "\n====================== PARTE 3.1 ======================\n"
 
+parsed = pcfg_unk.parse(pcfg_unk.sents[0])
+print "(3.3.A)"
+print parsed
+
+parsed = pcfg_unk.parse(pcfg_unk.sents[1])
+print "(3.3.B)"
+print parsed
+
 # ----------------------------
 # class PCFG_LEX
 # ----------------------------
 pcfg_lex = PCFG_LEX(path)
 print "\n====================== PARTE 4.1 ======================\n"
 
+parsed = pcfg.parse(pcfg_lex.sents[0])
+print "(4.1.A)"
+print parsed
+
+parsed = pcfg_lex.parse(pcfg_lex.sents[0])
+print "(4.1.B)"
+print parsed
+
 # ----------------------------
 # class PCFG_LEX_VERB
 # ----------------------------
 pcfg_lex_verb = PCFG_LEX_VERB(path)
 print "\n====================== PARTE 4.2 ======================\n"
+
+parsed = pcfg_lex.parse(pcfg_lex_verb.sents[0])
+print "(4.2.A.i)"
+print parsed
+
+parsed = pcfg_lex.parse(pcfg_lex_verb.sents[1])
+print "(4.2.A.ii)"
+print parsed
+
+parsed = pcfg_lex_verb.parse(pcfg_lex_verb.sents[0])
+print "(4.2.B.i)"
+print parsed
+
+parsed = pcfg_lex_verb.parse(pcfg_lex_verb.sents[1])
+print "(4.2.B.ii)"
+print parsed
+
+print "(4.2.C)"
+
+parsed = pcfg_lex.parse(pcfg_lex_verb.sents[2])
+print "- c/4.1.b"
+
+parsed = pcfg_lex_verb.parse(pcfg_lex_verb.sents[2])
+print "- c/4.2.b"
