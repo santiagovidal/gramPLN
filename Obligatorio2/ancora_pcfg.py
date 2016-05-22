@@ -274,10 +274,10 @@ class PCFG_UNK(PCFG):
 		# words = sentence.split()
 		# new_sentence = []
 		sentence = ' '.join( # Concatenar
-							map(lambda wd :  # o bien UNK o bien word
+							map(lambda word :  # o bien UNK o bien word
 								"UNK"
 								if (word.lower() not in self.wordfrecs.keys()) or self.wordfrecs[word.lower()] == 1
-								else x
+								else word
 							,sentence.split())
 						)
 		return self.parser.parse(sentence)

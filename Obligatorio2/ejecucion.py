@@ -38,7 +38,7 @@ def timer(start,end):
 
 # Cargar instancias del problema - FIXME: Demora horas
 ini = time.time()
-for i in range(5):
+for i in range(3):
 	name = "Corpus" if i == 0 else "PCFG" if i == 1 else "PCFG_UNK" if i == 2 else "PCFG_LEX" if i == 3 else "PCFG_LEX_VERB"
 	print " (%i/5) Cargando %s...\r" % (i+1,name),
 	if   i == 0 : corpus = Corpus(path)
