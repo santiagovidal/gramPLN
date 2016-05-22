@@ -58,8 +58,9 @@ class Corpus:
     """
 
     def __init__(self, corpus_path='./relative-path/'):
-        # Cargar corpus desde 'corpus_path'
-        self.corpus =  ancora.AncoraCorpusReader(corpus_path)
+        # Cargar corpus desde 'corpus_path'		
+		print >> open('progress.log', 'w'), "LOG: Corpus - init" # TODO - borrar
+		self.corpus =  ancora.AncoraCorpusReader(corpus_path)
 
     ## Parte 1.1
     # a.
@@ -146,12 +147,12 @@ class Corpus:
 		"""
 		Retorna todos los árboles que contengan alguna palabra con lema 'lema'.
 		"""
-		parsed_sents = self.corpus.parsed_sents()
-		lemmatized_sents = lemmatized_sents(self.corpus)
+		parsed = self.corpus.parsed_sents()
+		lemmatized = lemmatized_sents(self.corpus)
 		
 		return map(lambda x:x[0], 
 					filter( lambda x: any([lem == lema for (_,lem) in x[1].leaves()]), 
-							zip(parsed_sents,lemmatized_sents)))   
+							zip(parsed,lemmatized)))   
 		
 		
 # Parte 2 - PCFG y Parsing
@@ -169,10 +170,11 @@ class PCFG:
             ]
 
     def __init__(self, corpus_path='./relative-path/'):
-        corpus = Corpus(corpus_path)
-        self.wordfrecs = corpus.palabras_frecs()
-        self.grammar = self._induce_pcfg(corpus)
-        self.parser  = self._generate_parser()
+		print >> open('progress.log', 'w'), "LOG: PCFG_* - init" # TODO - borrar
+		corpus = Corpus(corpus_path)
+		self.wordfrecs = corpus.palabras_frecs()
+		self.grammar = self._induce_pcfg(corpus)
+		self.parser  = self._generate_parser()
 
     ## Parte 2.1 (grammar)
     def _induce_pcfg(self, corpus):
@@ -245,11 +247,10 @@ class PCFG_UNK(PCFG):
         prods = sum((t.productions() for t in corpus.corpus.parsed_sents()), [])
         one_time_words = filter(lambda word: self.wordfrecs[word] == 1, self.wordfrecs.keys())
 
-        # aux = 0
-        # total = len(prods)
+        aux, total = 0, len(prods)
         for prod in prods:
-            # aux = aux + 1
-            # print "Checking " + str(aux) + "/" + str(total)
+            aux = aux + 1
+            print >> open('progress.log', 'w'), "\rLOG: PCFG_UNK", "%i/%i" % (aux,total),
             if prod.is_lexical() and prod.rhs()[0] in one_time_words:
                 # print "DEBUG: Sustituye \'%s -> %s\' por \'%s -> UNK\''" % (prod.lhs(),prod.rhs()[0],prod.lhs())
                 prods.remove(prod)
@@ -294,11 +295,10 @@ class PCFG_LEX(PCFG):
 		"""
 		prods = sum((t.productions() for t in lemmatized_sents(corpus.corpus)), [])
 		
-		# aux = 0
-		# total = len(prods)
+		aux, total = 0, len(prods) 
 		for prod in prods:
-			# aux = aux + 1
-			# print "Checking " + str(aux) + "/" + str(total)
+			aux = aux + 1
+			print >> open('progress.log', 'w'), "\rLOG: PCFG_LEX", "%i/%i" % (aux,total),
 			if prod.is_lexical():
 				# print "DEBUG: Sustituye \'%s\' por \'%s\' y \'%s\'" % (
 					# "%s -> %s"%(prod.lhs(),prod.rhs()[0][0]),

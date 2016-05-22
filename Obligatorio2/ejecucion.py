@@ -38,9 +38,9 @@ def timer(start,end):
 
 # Cargar instancias del problema - FIXME: Demora horas
 ini = time.time()
-for i in range(5):
+for i in range(2):
 	name = "Corpus" if i == 0 else "PCFG" if i == 1 else "PCFG_UNK" if i == 2 else "PCFG_LEX" if i == 3 else "PCFG_LEX_VERB"
-	print "\r(%i/5) Cargando %s...                            " % (i+1,name),
+	print " (%i/5) Cargando %s...\r" % (i+1,name),
 	if   i == 0 : corpus = Corpus(path)
 	elif i == 1 : pcfg = PCFG(path)
 	elif i == 2	: pcfg_unk = PCFG_UNK(path)
@@ -88,11 +88,11 @@ def make(op):
 	if op == 1:
 		cant_oraciones = corpus.cant_oraciones()
 		print "\rCantidad de oraciones: "
-		print corpus.cant_oraciones
+		print cant_oraciones
 	elif op == 2:
 		oracion_mas_larga = corpus.oracion_mas_larga()
 		print "\rOracion mas larga:"
-		print oracion_mas_larga.split(' '), "palabras"
+		print len(oracion_mas_larga.split(' ')), "palabras"
 		print oracion_mas_larga
 	elif op == 3:
 		largo_promedio_oracion = corpus.largo_promedio_oracion()
@@ -110,85 +110,112 @@ def make(op):
 		arbol_min_nodos = corpus.arbol_min_nodos()
 		print "\rArbol con minima cantidad de nodos:"
 		print len(arbol_min_nodos.treepositions()), "nodos"
-		arbol_min_nodos.pretty_print 
+		arbol_min_nodos.pretty_print() 
 	elif op == 7:
-		arbol_min_nodos = corpus.arbol_max_nodos()
+		arbol_max_nodos = corpus.arbol_max_nodos()
 		print "\rArbol con maxima cantidad de nodos:"
 		print len(arbol_max_nodos.treepositions()), "nodos"
-		arbol_max_nodos.pretty_print 
+		arbol_max_nodos.pretty_print() 
 	elif op == 8:
-		lema = raw_input('Lema > ')
+		lema = raw_input('\r'+' '*20+'\rLema > ')
 		if not lema: lema = "mostrar"
 		arboles_con_lema = corpus.arboles_con_lema(lema)
 		print "\rArbol con lema \'",lema,"\'"
 		print len(arboles_con_lema), "arboles"
-		print "Ejemplo:"
+		print "** Ejemplo **"
 		print ' '.join(arboles_con_lema[randint(0,len(arboles_con_lema)-1)].leaves())
 	elif op == 9:
 		sent = pcfg.sents[0]
 		parsed = pcfg.parse(sent)
+		parsed = [t for t in parsed]
 		print "\rOracion:",sent
-		print parsed
+		print len(parsed),"reconocedores"
+		print "** Ejemplo **"
+		print parsed[randint(0,len(parsed))]
 	elif op == 10:
 		sent = pcfg.sents[1]
 		parsed = pcfg.parse(sent)
+		parsed = [t for t in parsed]
 		print "\rOracion:",sent
-		print parsed
+		print len(parsed),"reconocedores"
+		print parsed[randint(0,len(parsed))]
 	elif op == 11:
 		sent = pcfg.sents[2]
 		parsed = pcfg.parse(sent)
+		parsed = [t for t in parsed]
 		print "\rOracion:",sent
-		print parsed	
+		print len(parsed),"reconocedores"
+		print parsed[randint(0,len(parsed))]
 	elif op == 12:
 		sent = pcfg_unk.sents[0]
 		parsed = pcfg_unk.parse(sent)
+		parsed = [t for t in parsed]
 		print "\rOracion:",sent
-		print parsed
+		print len(parsed),"reconocedores"
+		print parsed[randint(0,len(parsed))]
 	elif op == 13:
 		sent = pcfg_unk.sents[1]
 		parsed = pcfg_unk.parse(sent)
+		parsed = [t for t in parsed]
 		print "\rOracion:",sent
-		print parsed	
+		print len(parsed),"reconocedores"
+		print parsed[randint(0,len(parsed))]
 	elif op == 14:
 		sent = pcfg_lex.sents[0]
 		parsed = pcfg.parse(sent)
+		parsed = [t for t in parsed]
 		print "\rOracion:",sent
-		print parsed
+		print len(parsed),"reconocedores"
+		print parsed[randint(0,len(parsed))]
 	elif op == 15:
 		sent = pcfg_lex.sents[0]
 		parsed = pcfg_lex.parse(sent)
+		parsed = [t for t in parsed]
 		print "\rOracion:",sent
-		print parsed	
+		print len(parsed),"reconocedores"
+		print parsed[randint(0,len(parsed))]
 	elif op == 16:
 		sent = pcfg_lex_verb.sents[0]
 		parsed = pcfg_lex.parse(sent)
+		parsed = [t for t in parsed]
 		print "\rOracion:",sent
-		print parsed	
+		print len(parsed),"reconocedores"
+		print parsed[randint(0,len(parsed))]
 	elif op == 17:
 		sent = pcfg_lex_verb.sents[1]
 		parsed = pcfg_lex.parse(sent)
+		parsed = [t for t in parsed]
 		print "\rOracion:",sent
-		print parsed
+		print len(parsed),"reconocedores"
+		print parsed[randint(0,len(parsed))]
 	elif op == 18:
 		sent = pcfg_lex_verb.sents[0]
 		parsed = pcfg_lex_verb.parse(sent)
+		parsed = [t for t in parsed]
 		print "\rOracion:",sent
-		print parsed
+		print len(parsed),"reconocedores"
+		print parsed[randint(0,len(parsed))]
 	elif op == 19:
 		sent = pcfg_lex_verb.sents[1]
 		parsed = pcfg_lex_verb.parse(sent)
+		parsed = [t for t in parsed]
 		print "\rOracion:",sent
-		print parsed
+		print len(parsed),"reconocedores"
+		print parsed[randint(0,len(parsed))]
 	elif op == 20:
 		sent = pcfg_lex_verb.sents[2]
 		parsed = pcfg_lex.parse(sent)
+		parsed = [t for t in parsed]
 		print "\rOracion:",sent
-		print parsed
+		print len(parsed),"reconocedores"
+		print parsed[randint(0,len(parsed))]
 	elif op == 21:
 		sent = pcfg_lex_verb.sents[2]
 		parsed = pcfg_lex_verb.parse(sent)
+		parsed = [t for t in parsed]
 		print "\rOracion:",sent
-		print parsed	
+		print len(parsed),"reconocedores"
+		print parsed[randint(0,len(parsed))]
 	else:
 		print "Comando no valido!"
 
@@ -196,8 +223,10 @@ def make(op):
 while True:
 	os.system('cls' if os.name == 'nt' else 'clear')
 	print_menu()
-	op = int(raw_input("> "))
+	op = raw_input("> ")
+	if not op: op = 0
+	else: op = int(op)
 	if op == 0: break
 	print "\rProcesando...",
 	make(op)
-	raw_input("Enter para continuar...")
+	raw_input("\nEnter para continuar...")
