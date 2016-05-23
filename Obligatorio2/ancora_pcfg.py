@@ -26,6 +26,7 @@ import ancora  # (Modulo para leer AnCora)
 # Otros modulos de utilidad
 from collections import defaultdict
 from string import punctuation, split, join
+import sys # FIXME - Borrar
 
 
 # Auxiliares
@@ -178,13 +179,13 @@ class PCFG:
 
     ## Parte 2.1 (grammar)
     def _induce_pcfg(self, corpus):
-        """
-        Induce PCFG del corpus.
-        """
-        prods = sum((t.productions() for t in corpus.corpus.parsed_sents()), [])
-        S = nltk.Nonterminal('sentence')
-        grammar = nltk.induce_pcfg(S, prods)
-        return grammar
+		"""
+		Induce PCFG del corpus.
+		"""
+		prods = sum((t.productions() for t in corpus.corpus.parsed_sents()),[])
+		S = nltk.Nonterminal('sentence')
+		grammar = nltk.induce_pcfg(S, prods)
+		return grammar
 
     # a
     def reglas_no_lexicas(self):
@@ -201,7 +202,6 @@ class PCFG:
         # Primero filtra las reglas lexicas, y despues se queda con el lado izquierdo de la regla
         # O sea el "lhs"
         return map(lambda x: x.lhs(), filter(lambda rule: rule.is_lexical(), self.grammar.productions()))
-        
 
     # c
     def reglas_lexicas(self, c):
@@ -244,24 +244,21 @@ class PCFG_UNK(PCFG):
 		"""
 		Induce PCFG grammar del corpus (treebank) considerando palabras UNK.
 		"""
-		prods = sum((t.productions() for t in corpus.corpus.parsed_sents()), [])
 		one_time_words = filter(lambda word: self.wordfrecs[word] == 1, self.wordfrecs.keys())
-		
+		# prods = sum( # FIXME - Hacerlo inline, sino hago 2 recorridas
+					# ([nltk.Production(prod.lhs(),["UNK"]) 
+						# if prod.is_lexical() 
+							# and prod.rhs()[0] in one_time_words 
+						# else prod
+						# for prod in t.productions()]
+					# for t in corpus.corpus.parsed_sents())
+				# ,[])
+		prods = sum((t.productions() for t in corpus.corpus.parsed_sents()),[])
 		prods = map(lambda prod: # o bien X -> UNK o bien X -> word
 						nltk.Production(prod.lhs(),["UNK"]) 
 						if prod.is_lexical() and prod.rhs()[0] in one_time_words 
 						else prod
 					,prods)
-		
-        # # aux, total = 0, len(prods)
-        # for prod in prods:
-            # # aux = aux + 1
-            # # print >> open('progress.log', 'a'), "\rLOG: PCFG_UNK", "%i/%i" % (aux,total),
-            # if prod.is_lexical() and prod.rhs()[0] in one_time_words:
-                # # print "DEBUG: Sustituye \'%s -> %s\' por \'%s -> UNK\''" % (prod.lhs(),prod.rhs()[0],prod.lhs())
-                # prods.remove(prod)
-                # prods.append(nltk.Production(prod.lhs(),["UNK"]))
-
 		S = nltk.Nonterminal('sentence')
 		return nltk.induce_pcfg(S, prods)
 
@@ -271,23 +268,11 @@ class PCFG_UNK(PCFG):
 		"""
 		Retorna el análisis sintáctico de la oración contemplando palabras UNK.
 		"""
-		# words = sentence.split()
-		# new_sentence = []
-		sentence = ' '.join( # Concatenar
-							map(lambda word :  # o bien UNK o bien word
-								"UNK"
-								if (word.lower() not in self.wordfrecs.keys()) or self.wordfrecs[word.lower()] == 1
-								else word
-							,sentence.split())
-						)
-		return self.parser.parse(sentence)
-		# for word in words:
-			# if (word.lower() not in self.wordfrecs.keys()) or self.wordfrecs[word.lower()] == 1:
-				# new_sentence.append("UNK")
-			# else:
-				# new_sentence.append(word)
-
-		# return self.parser.parse(new_sentence)
+		words = ["UNK" if (word.lower() not in self.wordfrecs.keys()) 
+						or self.wordfrecs[word.lower()] == 1
+					else word
+					for word in sentence.split()]
+		return self.parser.parse(words)
 
 
 
@@ -307,35 +292,27 @@ class PCFG_LEX(PCFG):
 		"""
 		Induce PCFG del corpus considerando lexicalización en primer nivel.
 		"""
-		prods = sum((t.productions() for t in lemmatized_sents(corpus.corpus)), [])
-		
+		# prods = sum( # FIXME - Hacerlo inline para evitar 2 recorridas
+				# (sum(([nltk.Production(prod.lhs(), [nltk.Nonterminal("lem(%s)"%prod.rhs()[0][1])]), 		
+						# nltk.Production(nltk.Nonterminal("lem(%s)"%prod.rhs()[0][1]), [prod.rhs()[0][0]])] 
+					# if prod.is_lexical()
+					# else [prod]
+					# for prod in t.productions())
+				# ,[])
+				# for t in lemmatized_sents(corpus.corpus))
+			# ,[])
+		prods = sum((t.productions() for t in lemmatized_sents(corpus.corpus)),[])
 		prods = sum( # Aplanar lista de listas 
 					 # [...,[X_i -> lemma_i,lemma_i -> word_i],...,[X_j -> word_j],...] 
 					 # => [...,X_i -> lemma_i,lemma_i -> word_i,...,X_j -> word_j,...] 
 					map(lambda prod: [ # o bien [X -> lemma,lemma -> word] o bien [X -> word]
-							nltk.Production(prod.lhs(), ["lem(%s)"%prod.rhs()[0][1]]), 		
-							nltk.Production("lem(%s)"%prod.rhs()[0][1], [prod.rhs()[0][0]])
-						 ] 
+							nltk.Production(prod.lhs(), [nltk.Nonterminal("lem(%s)"%prod.rhs()[0][1])]), 		
+							nltk.Production(nltk.Nonterminal("lem(%s)"%prod.rhs()[0][1]), [prod.rhs()[0][0]])
+						] 
 						if prod.is_lexical()
 						else [prod] 
 					,prods)
 				,[])
-		
-		# aux, total = 0, len(prods) 
-		# for prod in prods:
-			# # aux = aux + 1
-			# # print >> open('progress.log', 'a'), "\rLOG: PCFG_LEX", "%i/%i" % (aux,total),
-			# if prod.is_lexical():
-				# # print "DEBUG: Sustituye \'%s\' por \'%s\' y \'%s\'" % (
-					# # "%s -> %s"%(prod.lhs(),prod.rhs()[0][0]),
-					# # "%s -> Lem(%s)"%(prod.lhs(),prod.rhs()[0][1]),
-					# # "Lem(%s) -> %s"%(prod.rhs()[0][1],prod.rhs()[0][0])
-				# # )
-				# prods.remove(prod)
-				# word,lema = prod.rhs()[0]
-				# prods.append(nltk.Production(prod.lhs(), [lema]))
-				# prods.append(nltk.Production("lem(%s)"%lema, [word]))
-
 		S = nltk.Nonterminal('sentence')
 		return nltk.induce_pcfg(S, prods)
 
