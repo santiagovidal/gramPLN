@@ -245,6 +245,11 @@ class PCFG_UNK(PCFG):
 		Induce PCFG grammar del corpus (treebank) considerando palabras UNK.
 		"""
 		one_time_words = filter(lambda word: self.wordfrecs[word] == 1, self.wordfrecs.keys())
+		prods = [ nltk.Production(prod.lhs(),["UNK"]) 
+					if prod.is_lexical() and prod.rhs()[0] in one_time_words
+					else prod 
+				for t in corpus.corpus.parsed_sents() 
+				for prod in t.productions()]
 		# prods = sum( # FIXME - Hacerlo inline, sino hago 2 recorridas
 					# ([nltk.Production(prod.lhs(),["UNK"]) 
 						# if prod.is_lexical() 
@@ -253,12 +258,12 @@ class PCFG_UNK(PCFG):
 						# for prod in t.productions()]
 					# for t in corpus.corpus.parsed_sents())
 				# ,[])
-		prods = sum((t.productions() for t in corpus.corpus.parsed_sents()),[])
-		prods = map(lambda prod: # o bien X -> UNK o bien X -> word
-						nltk.Production(prod.lhs(),["UNK"]) 
-						if prod.is_lexical() and prod.rhs()[0] in one_time_words 
-						else prod
-					,prods)
+		# prods = sum((t.productions() for t in corpus.corpus.parsed_sents()),[])
+		# prods = map(lambda prod: # o bien X -> UNK o bien X -> word
+						# nltk.Production(prod.lhs(),["UNK"]) 
+						# if prod.is_lexical() and prod.rhs()[0] in one_time_words 
+						# else prod
+					# ,prods)
 		S = nltk.Nonterminal('sentence')
 		return nltk.induce_pcfg(S, prods)
 
@@ -268,7 +273,8 @@ class PCFG_UNK(PCFG):
 		"""
 		Retorna el análisis sintáctico de la oración contemplando palabras UNK.
 		"""
-		words = ["UNK" if (word.lower() not in self.wordfrecs.keys()) 
+		words = ["UNK" 
+					if word.lower() not in self.wordfrecs.keys()
 						or self.wordfrecs[word.lower()] == 1
 					else word
 					for word in sentence.split()]
@@ -292,27 +298,34 @@ class PCFG_LEX(PCFG):
 		"""
 		Induce PCFG del corpus considerando lexicalización en primer nivel.
 		"""
+		prods = [ prod for
+				possibles in [ [nltk.Production(possible_prod.lhs(), [nltk.Nonterminal(possible_prod.rhs()[0][1])]), 		
+						nltk.Production(nltk.Nonterminal(possible_prod.rhs()[0][1]), [possible_prod.rhs()[0][0]])] 
+					if possible_prod.is_lexical()
+					else [possible_prod]
+					for t in lemmatized_sents(corpus.corpus) # OBS: En lemmatized que devuelve (word,lemma)
+					for possible_prod in t.productions()]
+				for prod in possibles]
 		# prods = sum( # FIXME - Hacerlo inline para evitar 2 recorridas
-				# (sum(([nltk.Production(prod.lhs(), [nltk.Nonterminal("lem(%s)"%prod.rhs()[0][1])]), 		
-						# nltk.Production(nltk.Nonterminal("lem(%s)"%prod.rhs()[0][1]), [prod.rhs()[0][0]])] 
+				# ([[nltk.Production(prod.lhs(), [nltk.Nonterminal(prod.rhs()[0][1])]), 		
+						# nltk.Production(nltk.Nonterminal(prod.rhs()[0][1]), [prod.rhs()[0][0]])] 
 					# if prod.is_lexical()
 					# else [prod]
-					# for prod in t.productions())
-				# ,[])
+					# for prod in t.productions()]
 				# for t in lemmatized_sents(corpus.corpus))
 			# ,[])
-		prods = sum((t.productions() for t in lemmatized_sents(corpus.corpus)),[])
-		prods = sum( # Aplanar lista de listas 
-					 # [...,[X_i -> lemma_i,lemma_i -> word_i],...,[X_j -> word_j],...] 
-					 # => [...,X_i -> lemma_i,lemma_i -> word_i,...,X_j -> word_j,...] 
-					map(lambda prod: [ # o bien [X -> lemma,lemma -> word] o bien [X -> word]
-							nltk.Production(prod.lhs(), [nltk.Nonterminal("lem(%s)"%prod.rhs()[0][1])]), 		
-							nltk.Production(nltk.Nonterminal("lem(%s)"%prod.rhs()[0][1]), [prod.rhs()[0][0]])
-						] 
-						if prod.is_lexical()
-						else [prod] 
-					,prods)
-				,[])
+		# prods = sum((t.productions() for t in lemmatized_sents(corpus.corpus)),[])
+		# prods = sum( # Aplanar lista de listas 
+					 # # [...,[X_i -> lemma_i,lemma_i -> word_i],...,[X_j -> word_j],...] 
+					 # # => [...,X_i -> lemma_i,lemma_i -> word_i,...,X_j -> word_j,...] 
+					# map(lambda prod: [ # o bien [X -> lemma,lemma -> word] o bien [X -> word]
+							# nltk.Production(prod.lhs(), [nltk.Nonterminal("lem(%s)"%prod.rhs()[0][1])]), 		
+							# nltk.Production(nltk.Nonterminal("lem(%s)"%prod.rhs()[0][1]), [prod.rhs()[0][0]])
+						# ] 
+						# if prod.is_lexical()
+						# else [prod] 
+					# ,prods)
+				# ,[])
 		S = nltk.Nonterminal('sentence')
 		return nltk.induce_pcfg(S, prods)
 
