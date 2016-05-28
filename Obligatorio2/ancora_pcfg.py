@@ -27,6 +27,8 @@ import ancora  # (Modulo para leer AnCora)
 from collections import defaultdict
 from string import punctuation, split, join
 import sys # FIXME - Borrar
+reload(sys)    # to re-enable sys.setdefaultencoding()
+sys.setdefaultencoding('utf-8')
 
 
 # Auxiliares
@@ -346,7 +348,20 @@ class PCFG_LEX_VERB(PCFG):
         """
         Induce PCFG del corpus considerando lexicalización en primer nivel y grupos verbales.
         """
+        # prods = [ nltk.Production("%s-%s"% (prod.lhs(),"-".join(
+        #             map(lambda x : x[1] ,filter(lambda x: x,st.pos())))), prod.rhs())
+        #         if str(prod.lhs()) == "grup.verb"
+        #         else nltk.Production(prod.lhs(), [prod.rhs()[0][0]])
+        #         if prod.is_lexical()
+        #         else prod
+        #         for t in lemmatized_sents(corpus.corpus)
+        #         #for st in t.subtrees()
+        #         for child in t
+        #         for prod in t.productions()
+
         return # ...
 
 
 # FIXME - http://www.cs.famaf.unc.edu.ar/~francolq/jcc
+# der = [p for p in prods if any(map(lambda x:str(x)=="grup.verb",p.rhs()))] 
+# izq = [p for p in prods if str(p.lhs())[:9]=="grup.verb"]
