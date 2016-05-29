@@ -22,12 +22,13 @@ from ancora_pcfg import Corpus, PCFG, PCFG_UNK, PCFG_LEX, PCFG_LEX_VERB
 from string import split,join
 from random import randint
 from nltk.grammar import Nonterminal
+from nltk.draw.tree import draw_trees
 import os
 import sys
 import time
 
 # Constantes
-CR = "%s%s%s" % ('\r',' '*100,'\r')
+CR = "%s%s%s" % ('\r',' '*50,'\r')
 
 # Solicitar path
 path= raw_input("AnCora path: ")
@@ -48,12 +49,15 @@ case = {
 	"PCFG_LEX_VERB":PCFG_LEX_VERB
 }
 inst = {}
-ini = time.time()
+_ini = time.time()
 for i, (name,obj) in enumerate(case.items()):
-	print CR,"(%i/5) Cargando %s..." % (i+1,name),
+	print CR,"(%i/%i) Loading %s..." % (i+1,len(case),name),
+	ini = time.time()
 	inst[name] = case[name](path) 
-end = time.time()
-print CR,"Tiempo transcurrido:",timer(ini,end)
+	end = time.time()
+	print CR,"%-13s - %s" % (name,timer(ini,end))
+_end = time.time()
+print "Tiempo transcurrido:",timer(_ini,_end)
 raw_input("\nEnter para continuar...")
 
 # Entrada/Salida
@@ -187,11 +191,11 @@ def make(op):
 		# parsed = [t for t in parsed]
 		print CR,"Oracion:\n%s\n" % sent
 		print "Cantidad de reconoceedores:\n%i\n" % len(parsed)
-		# for i,parse in enumerate(parsed):
-			# print "************* [%i] *************" % (i+1)
-			# print parse
-		print "Procesando..."
-		nltk.draw.tree.draw_tree(*parsed)
+		for i,parse in enumerate(parsed):
+			print "************* [%i] *************" % (i+1)
+			print parse
+			print "Graficando..."
+			draw_trees(parse)
 		
 # Principal
 while True:
