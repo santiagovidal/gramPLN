@@ -29,8 +29,8 @@ import ancora  # (Modulo para leer AnCora)
 from collections import defaultdict
 from string import punctuation, split, join
 from nltk.util import LazyMap
-import sys # FIXME - Borrar
-reload(sys)    # to re-enable sys.setdefaultencoding()
+import sys
+reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
@@ -55,7 +55,22 @@ def lemmatized_sents(corpus,fileids=None):
 	if not fileids:
 		fileids = corpus.xmlreader.fileids()
 	return LazyMap(lemmatized, concat([list(corpus.xmlreader.xml(fileid)) for fileid in fileids]))
-	
+
+def lexicalize(tree, grup=None):
+    if not isinstance(tree, tuple):
+        new_tree = nltk.Tree(tree.label(), [])
+        if len(tree) == 1 and isinstance(tree[0], tuple):
+            new_tree.set_label(u"%s-%s"%(tree.label(),tree[0][1]))
+        elif grup and tree.label() == grup:
+            verbs_pos = filter(lambda pos: pos[1][0] == grup[5], tree.pos()) # Devuelve una lista de ((palabra,lema),cat) siendo cat un verbo
+            lemmas = map(lambda x: x[0][1], verbs_pos) #Devuelve una lista de lemas de verbos
+            lemmas = "-".join(lemmas)
+            new_tree.set_label(u"%s-%s"%(tree.label(),lemmas))
+        for child in tree:
+            new_tree.append(lexicalize(child,grup))
+        return new_tree
+    else: return tree[0]
+
 
 # Parte 1 - Corpus
 ###################
@@ -65,8 +80,7 @@ class Corpus:
     """
 
     def __init__(self, corpus_path='./relative-path/'):
-        # Cargar corpus desde 'corpus_path'		
-		#print >> open('progress.log', 'a'), "LOG: Corpus - init" # TODO - borrar
+        # Cargar corpus desde 'corpus_path'
 		self.corpus =  ancora.AncoraCorpusReader(corpus_path)
 
     ## Parte 1.1
@@ -95,6 +109,7 @@ class Corpus:
         """
         sentences = list(self.corpus.sents())
         return sum([len(sentence) for sentence in sentences])/len(sentences)
+        # return sum([len(sentence.split()) for sentence in sentences])/len(sentences)
 
     # d.
     def palabras_frecs(self):
@@ -213,8 +228,7 @@ class PCFG:
         """
         Retorna las reglas léxicas de categoría 'c'
         """
-		# FIXME - Asumimos que "c" es un Nonterminal o un String? Sino hay que hacer conversión
-        return filter(lambda rule: rule.is_lexical() and rule.lhs() == c, self.grammar.productions())
+        return filter(lambda rule: rule.is_lexical() and str(rule.lhs()) == c, self.grammar.productions())
 
     ## Parte 2.2 (parser)
     def _generate_parser(self):
@@ -250,13 +264,6 @@ class PCFG_UNK(PCFG):
 		"""
 		Induce PCFG grammar del corpus (treebank) considerando palabras UNK.
 		"""
-		# one_time_words = filter(lambda word: self.wordfrecs[word] == 1, self.wordfrecs.keys())
-		# prods = [ nltk.Production(prod.lhs(),["UNK"]) 
-					# if prod.is_lexical() and prod.rhs()[0] in one_time_words
-					# else prod 
-				# for t in corpus.corpus.parsed_sents() 
-				# for prod in t.productions()]
-		
 		def induce_unk(tree):
 			for prod in tree.productions():
 				if prod.is_lexical() and self.wordfrecs[prod.rhs()[0]] == 1:
@@ -264,21 +271,6 @@ class PCFG_UNK(PCFG):
 				else: yield prod
 		prods = sum((list(induce_unk(t)) for t in corpus.corpus.parsed_sents()), [])
 		
-		# prods = sum( # FIXME - Hacerlo inline, sino hago 2 recorridas
-					# ([nltk.Production(prod.lhs(),["UNK"]) 
-						# if prod.is_lexical() 
-							# and prod.rhs()[0] in one_time_words 
-						# else prod
-						# for prod in t.productions()]
-					# for t in corpus.corpus.parsed_sents())
-				# ,[])
-				
-		# prods = sum((t.productions() for t in corpus.corpus.parsed_sents()),[])
-		# prods = map(lambda prod: # o bien X -> UNK o bien X -> word
-						# nltk.Production(prod.lhs(),["UNK"]) 
-						# if prod.is_lexical() and prod.rhs()[0] in one_time_words 
-						# else prod
-					# ,prods)
 		S = nltk.Nonterminal('sentence')
 		return nltk.induce_pcfg(S, prods)
 
@@ -312,44 +304,8 @@ class PCFG_LEX(PCFG):
 		"""
 		Induce PCFG del corpus considerando lexicalización en primer nivel.
 		"""
-		# prods = [ prod 
-					# for possibles in [ 
-						# [nltk.Production(possible_prod.lhs(), [nltk.Nonterminal(possible_prod.rhs()[0][1])]), 		
-							# nltk.Production(nltk.Nonterminal(possible_prod.rhs()[0][1]), [possible_prod.rhs()[0][0]])] 
-						# if possible_prod.is_lexical()
-						# else [possible_prod]
-						# for t in lemmatized_sents(corpus.corpus) # OBS: En lemmatized que devuelve (word,lemma)
-						# for possible_prod in t.productions()]
-					# for prod in possibles]
-					
-		def lexicalize_first(tree):
-			for prod in tree.productions():
-				if prod.is_lexical():
-					yield nltk.Production(prod.lhs(), [nltk.Nonterminal(prod.rhs()[0][1])])	
-					yield nltk.Production(nltk.Nonterminal(prod.rhs()[0][1]), [prod.rhs()[0][0]])
-				else: yield prod		
-		prods = sum((list(lexicalize_first(t)) for t in lemmatized_sents(corpus.corpus)), [])
+		prods = sum((lexicalize(t).productions() for t in lemmatized_sents(corpus.corpus)), [])
 		
-		# prods = sum( # FIXME - Hacerlo inline para evitar 2 recorridas
-				# ([[nltk.Production(prod.lhs(), [nltk.Nonterminal(prod.rhs()[0][1])]), 		
-						# nltk.Production(nltk.Nonterminal(prod.rhs()[0][1]), [prod.rhs()[0][0]])] 
-					# if prod.is_lexical()
-					# else [prod]
-					# for prod in t.productions()]
-				# for t in lemmatized_sents(corpus.corpus))
-			# ,[])
-		# prods = sum((t.productions() for t in lemmatized_sents(corpus.corpus)),[])
-		# prods = sum( # Aplanar lista de listas 
-					 # # [...,[X_i -> lemma_i,lemma_i -> word_i],...,[X_j -> word_j],...] 
-					 # # => [...,X_i -> lemma_i,lemma_i -> word_i,...,X_j -> word_j,...] 
-					# map(lambda prod: [ # o bien [X -> lemma,lemma -> word] o bien [X -> word]
-							# nltk.Production(prod.lhs(), [nltk.Nonterminal("lem(%s)"%prod.rhs()[0][1])]), 		
-							# nltk.Production(nltk.Nonterminal("lem(%s)"%prod.rhs()[0][1]), [prod.rhs()[0][0]])
-						# ] 
-						# if prod.is_lexical()
-						# else [prod] 
-					# ,prods)
-				# ,[])
 		S = nltk.Nonterminal('sentence')
 		return nltk.induce_pcfg(S, prods)
 
@@ -368,30 +324,8 @@ class PCFG_LEX_VERB(PCFG):
     def _induce_pcfg(self, corpus):
 		"""
 		Induce PCFG del corpus considerando lexicalización en primer nivel y grupos verbales.
-		"""		
-		def lexicalize_grup(tree, grup="grup.verb"):
-			if not isinstance(tree, tuple):
-				new_tree = nltk.Tree(tree.label(), [])
-				if tree.label() == grup:
-					verbs_pos = filter(lambda pos: pos[1][0] == grup[5], tree.pos()) # Devuelve una lista de ((palabra,lema),cat) siendo cat un verbo
-					lemmas = map(lambda x: x[0][1], verbs_pos) #Devuelve una lista de lemas de verbos
-					lemmas = "-".join(lemmas)
-					new_tree.set_label("%s-%s"%(tree.label(),lemmas))
-				for child in tree:
-					new_tree.append(lexicalize_grup(child,grup))
-				return new_tree
-			else: return tree[0]	
-		prods = sum((lexicalize_grup(t).productions() for t in lemmatized_sents(corpus.corpus)), [])
-	
-		# prods = [ prod 
-					# for t in lemmatized_sents(corpus.corpus)	
-					# for prod in lexicalize_tree(t).productions()]
-		
-		# prods = sum((lexicalize_first(lexicalize_grup(t)) for t in lemmatized_sents(corpus.corpus)), [])
-		
-		# prods = [ prod 
-					# for lexicalize_first(t) in lemmatized_sents(corpus.corpus)	
-					# for prod in lexicalize_grup(t).productions()]
+		"""
+		prods = sum((lexicalize(t, grup="grup.verb").productions() for t in lemmatized_sents(corpus.corpus)), [])
 					
 		S = nltk.Nonterminal('sentence')
 		return nltk.induce_pcfg(S, prods)

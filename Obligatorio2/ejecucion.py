@@ -32,7 +32,7 @@ CR = "%s%s%s" % ('\r',' '*50,'\r')
 
 # Solicitar path
 path= raw_input("AnCora path: ")
-if not path: path = 'C:/data/ancora-3.0.1es/'
+if not path: path = '../../ancora-3.0.1es/'
 
 # Auxiliar para tomar tiempo
 def timer(start,end):
@@ -76,25 +76,29 @@ def print_menu():
 	print "          7  : arbol_max_nodos"
 	print "          8  : arboles_con_lema"
 	print "    Parte 2 - PCFG"
+	print "       Parte 2.1"
+	print "          9  : reglas_no_lexicas"
+	print "          10 : categorias_lexicas"
+	print "          11 : reglas_lexicas con categoria"
 	print "       Parte 2.3"
-	print "          9  : Parte (a)"
-	print "          10 : Parte (b)"
-	print "          11 : Parte (b)"
-	print "    Parte 3 - PCFG UNK"
-	print "       Parte 3.3"
 	print "          12 : Parte (a)"
 	print "          13 : Parte (b)"
+	print "          14 : Parte (b)"
+	print "    Parte 3 - PCFG UNK"
+	print "       Parte 3.3"
+	print "          15 : Parte (a)"
+	print "          16 : Parte (b)"
 	print "    Parte 4 - PCFG LEX"
 	print "       Parte 4.1"
-	print "          14 : Parte (a)"
-	print "          15 : Parte (b)"
+	print "          17 : Parte (a)"
+	print "          18 : Parte (b)"
 	print "       Parte 4.2"
-	print "          16 : Parte (a) I"
-	print "          17 : Parte (a) II"
-	print "          18 : Parte (b) I"
-	print "          19 : Parte (b) II"
-	print "          20 : Parte (c) I"
-	print "          21 : Parte (c) II"
+	print "          19 : Parte (a) I"
+	print "          20 : Parte (a) II"
+	print "          21 : Parte (b) I"
+	print "          22 : Parte (b) II"
+	print "          23 : Parte (c) I"
+	print "          24 : Parte (c) II"
 	print
 	print "Enter para salir..."
 	
@@ -136,57 +140,67 @@ def make(op):
 		arbol_max_nodos = inst["Corpus"].arbol_max_nodos()
 		print CR,"Arbol con maxima cantidad de nodos:"
 		print len(arbol_max_nodos.treepositions()), "nodos"
-		arbol_max_nodos.pretty_print() 
+		# arbol_max_nodos.pretty_print() 
 	elif op == 8:
 		lema = raw_input('\r'+' '*20+'\rLema > ')
 		if not lema: lema = "mostrar"
 		arboles_con_lema = inst["Corpus"].arboles_con_lema(lema)
-		print CR,"Arbol con lema \'",lema,"\'"
-		print len(arboles_con_lema), "arboles"
-		print "** Ejemplo **"
-		print ' '.join(arboles_con_lema[randint(0,len(arboles_con_lema)-1)].leaves())
+		if arboles_con_lema:
+			print CR,"Arboles con lema \'",lema,"\'"
+			print len(arboles_con_lema), "arboles"
+			print "** Ejemplo **"
+			print ' '.join(arboles_con_lema[randint(0,len(arboles_con_lema)-1)].leaves())
+		else: print CR,"No hay arboles con lema \'",lema,"\'"
 	elif op == 9:
+		print len(inst["PCFG"].reglas_no_lexicas()), "reglas no lexicas"
+	elif op == 10:
+		print len(inst["PCFG"].categorias_lexicas()), "categorias lexicas"
+	elif op == 11:
+		cat = raw_input('\r'+' '*20+'\Categoria > ')
+		if not cat: cat = "vmip3s0"
+		print len(inst["PCFG"].reglas_lexicas(cat)), "reglas lexicas con categoria \'",cat,"\'"
+	elif op == 12:
 		sent = inst["PCFG"].sents[0]
 		parsed = inst["PCFG"].parse(sent)
-	elif op == 10:
+	elif op == 13:
 		sent = inst["PCFG"].sents[1]
 		parsed = inst["PCFG"].parse(sent)
-	elif op == 11:
+	elif op == 14:
 		sent = inst["PCFG"].sents[2]
 		parsed = inst["PCFG"].parse(sent)
-	elif op == 12:
+	elif op == 15:
 		sent = inst["PCFG_UNK"].sents[0]
 		parsed = inst["PCFG_UNK"].parse(sent)
-	elif op == 13:
+	elif op == 16:
 		sent = inst["PCFG_UNK"].sents[1]
 		parsed = inst["PCFG_UNK"].parse(sent)
-	elif op == 14:
+	elif op == 17:
 		sent = inst["PCFG_LEX"].sents[0]
 		parsed = inst["PCFG"].parse(sent)
-	elif op == 15:
+	elif op == 18:
 		sent = inst["PCFG_LEX"].sents[0]
 		parsed = inst["PCFG_LEX"].parse(sent)
-	elif op == 16:
-		sent = inst["PCFG_LEX_VERB"].sents[0]
-		parsed = inst["PCFG_LEX"].parse(sent)
-	elif op == 17:
-		sent = inst["PCFG_LEX_VERB"].sents[1]
-		parsed = inst["PCFG_LEX"].parse(sent)
-	elif op == 18:
-		sent = inst["PCFG_LEX_VERB"].sents[0]
-		parsed = inst["PCFG_LEX_VERB"].parse(sent)
 	elif op == 19:
-		sent = inst["PCFG_LEX_VERB"].sents[1]
-		parsed = inst["PCFG_LEX_VERB"].parse(sent)
+		sent = inst["PCFG_LEX_VERB"].sents[0]
+		parsed = inst["PCFG_LEX"].parse(sent)
 	elif op == 20:
-		sent = inst["PCFG_LEX_VERB"].sents[2]
+		sent = inst["PCFG_LEX_VERB"].sents[1]
 		parsed = inst["PCFG_LEX"].parse(sent)
 	elif op == 21:
+		sent = inst["PCFG_LEX_VERB"].sents[0]
+		parsed = inst["PCFG_LEX_VERB"].parse(sent)
+	elif op == 22:
+		sent = inst["PCFG_LEX_VERB"].sents[1]
+		parsed = inst["PCFG_LEX_VERB"].parse(sent)
+	elif op == 23:
+		sent = inst["PCFG_LEX_VERB"].sents[2]
+		parsed = inst["PCFG_LEX"].parse(sent)
+	elif op == 24:
 		sent = inst["PCFG_LEX_VERB"].sents[2]
 		parsed = inst["PCFG_LEX_VERB"].parse(sent)
 	else:
 		print "Comando no valido!"
-	if op in range(9,22):
+	if op in range(12,24):
 		parsed = list(parsed)
 		# parsed = [t for t in parsed]
 		print CR,"Oracion:\n%s\n" % sent
@@ -205,5 +219,8 @@ while True:
 	if not op: break
 	op = int(op)
 	print CR,"Procesando...",
-	make(op)
+	try:
+		make(op)
+	except Exception, e:
+		print "Error:",e
 	raw_input("\nEnter para continuar...")
