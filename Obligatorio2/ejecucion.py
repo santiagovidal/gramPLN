@@ -26,6 +26,9 @@ import os
 import sys
 import time
 
+# Constantes
+CR = "%s%s%s" % ('\r',' '*100,'\r')
+
 # Solicitar path
 path= raw_input("AnCora path: ")
 if not path: path = 'C:/data/ancora-3.0.1es/'
@@ -34,9 +37,9 @@ if not path: path = 'C:/data/ancora-3.0.1es/'
 def timer(start,end):
 	hours, rem = divmod(end-start, 3600)
 	minutes, seconds = divmod(rem, 60)
-	print "{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds)
+	return "{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds)
 
-# Cargar instancias del problema - FIXME: Demora horas
+# Cargar instancias del problema
 case = {
 	"Corpus":Corpus,
 	"PCFG":PCFG,
@@ -47,16 +50,16 @@ case = {
 inst = {}
 ini = time.time()
 for i, (name,obj) in enumerate(case.items()):
-	print '\r',' '*100," (%i/5) Cargando %s...\r" % (i+1,name),
-	inst[name] = case[name](path)
+	print CR,"(%i/5) Cargando %s..." % (i+1,name),
+	inst[name] = case[name](path) 
 end = time.time()
-print '\r',' '*20,"\rTiempo transcurrido:"
-timer(ini,end)
-raw_input("Listo. Enter para continuar...")
+print CR,"Tiempo transcurrido:",timer(ini,end)
+raw_input("\nEnter para continuar...")
 
 # Entrada/Salida
 def print_menu():
 	print "====================== MENU ======================"
+	print "    0: Datos"
 	print "    Parte 1 - Corpus"
 	print "       Parte 1.1"
 	print "          1  : cant_oraciones"
@@ -88,44 +91,53 @@ def print_menu():
 	print "          19 : Parte (b) II"
 	print "          20 : Parte (c) I"
 	print "          21 : Parte (c) II"
+	print
+	print "Enter para salir..."
 	
 def make(op):
-	if op == 1:
+	if op == 0:
+		for name in case.keys():
+			if name != "Corpus":
+				print name
+				print inst[name].grammar
+				print inst[name].parser
+				print "---"
+	elif op == 1:
 		cant_oraciones = inst["Corpus"].cant_oraciones()
-		print "\rCantidad de oraciones: "
+		print CR,"Cantidad de oraciones: "
 		print cant_oraciones
 	elif op == 2:
 		oracion_mas_larga = inst["Corpus"].oracion_mas_larga()
-		print "\rOracion mas larga:"
+		print CR,"Oracion mas larga:"
 		print len(oracion_mas_larga.split(' ')), "palabras"
 		print oracion_mas_larga
 	elif op == 3:
 		largo_promedio_oracion = inst["Corpus"].largo_promedio_oracion()
-		print "\rLargo promedio de oración:"
+		print CR,"Largo promedio de oración:"
 		print largo_promedio_oracion
 	elif op == 4:
 		palabras_frecs = inst["Corpus"].palabras_frecs()
-		print "\rPalabras frecuentes:"
+		print CR,"Palabras frecuentes:"
 		print '\n\t'.join(map(str,sorted(palabras_frecs.items(),key=lambda x:x[1],reverse=True)[:20]))
 	elif op == 5:
 		palabras_frecs_cat = inst["Corpus"].palabras_frecs_cat()
-		print "\rPalabras frecuentes por categoria:"
+		print CR,"Palabras frecuentes por categoria:"
 		print '\n\t'.join(map(str,sorted(palabras_frecs_cat.items(),key=lambda x:len(x[1]),reverse=True)[:20]))
 	elif op == 6:
 		arbol_min_nodos = inst["Corpus"].arbol_min_nodos()
-		print "\rArbol con minima cantidad de nodos:"
+		print CR,"Arbol con minima cantidad de nodos:"
 		print len(arbol_min_nodos.treepositions()), "nodos"
 		arbol_min_nodos.pretty_print() 
 	elif op == 7:
 		arbol_max_nodos = inst["Corpus"].arbol_max_nodos()
-		print "\rArbol con maxima cantidad de nodos:"
+		print CR,"Arbol con maxima cantidad de nodos:"
 		print len(arbol_max_nodos.treepositions()), "nodos"
 		arbol_max_nodos.pretty_print() 
 	elif op == 8:
 		lema = raw_input('\r'+' '*20+'\rLema > ')
 		if not lema: lema = "mostrar"
 		arboles_con_lema = inst["Corpus"].arboles_con_lema(lema)
-		print "\rArbol con lema \'",lema,"\'"
+		print CR,"Arbol con lema \'",lema,"\'"
 		print len(arboles_con_lema), "arboles"
 		print "** Ejemplo **"
 		print ' '.join(arboles_con_lema[randint(0,len(arboles_con_lema)-1)].leaves())
@@ -171,21 +183,23 @@ def make(op):
 	else:
 		print "Comando no valido!"
 	if op in range(9,22):
-		parsed = [t for t in parsed]
-		print '\r',' '*20,"\rOracion:\n%s\n" % sent
+		parsed = list(parsed)
+		# parsed = [t for t in parsed]
+		print CR,"Oracion:\n%s\n" % sent
 		print "Cantidad de reconoceedores:\n%i\n" % len(parsed)
-		for i,parse in enumerate(parsed):
-			print "************* [%i] *************" % (i+1)
-			print parse
-
+		# for i,parse in enumerate(parsed):
+			# print "************* [%i] *************" % (i+1)
+			# print parse
+		print "Procesando..."
+		nltk.draw.tree.draw_tree(*parsed)
+		
 # Principal
 while True:
 	os.system('cls' if os.name == 'nt' else 'clear')
 	print_menu()
 	op = raw_input("> ")
-	if not op: op = 0
-	else: op = int(op)
-	if op == 0: break
-	print "\rProcesando...",
+	if not op: break
+	op = int(op)
+	print CR,"Procesando...",
 	make(op)
 	raw_input("\nEnter para continuar...")

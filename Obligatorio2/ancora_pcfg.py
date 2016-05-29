@@ -27,8 +27,6 @@ import ancora  # (Modulo para leer AnCora)
 from collections import defaultdict
 from string import punctuation, split, join
 import sys # FIXME - Borrar
-reload(sys)    # to re-enable sys.setdefaultencoding()
-sys.setdefaultencoding('utf-8')
 
 
 # Auxiliares
@@ -210,6 +208,7 @@ class PCFG:
         """
         Retorna las reglas léxicas de categoría 'c'
         """
+		# FIXME - Asumimos que "c" es un Nonterminal o un String? Sino hay que hacer conversión
         return filter(lambda rule: rule.is_lexical() and rule.lhs() == c, self.grammar.productions())
 
     ## Parte 2.2 (parser)
@@ -300,14 +299,15 @@ class PCFG_LEX(PCFG):
 		"""
 		Induce PCFG del corpus considerando lexicalización en primer nivel.
 		"""
-		prods = [ prod for
-				possibles in [ [nltk.Production(possible_prod.lhs(), [nltk.Nonterminal(possible_prod.rhs()[0][1])]), 		
-						nltk.Production(nltk.Nonterminal(possible_prod.rhs()[0][1]), [possible_prod.rhs()[0][0]])] 
-					if possible_prod.is_lexical()
-					else [possible_prod]
-					for t in lemmatized_sents(corpus.corpus) # OBS: En lemmatized que devuelve (word,lemma)
-					for possible_prod in t.productions()]
-				for prod in possibles]
+		prods = [ prod 
+					for possibles in [ 
+						[nltk.Production(possible_prod.lhs(), [nltk.Nonterminal(possible_prod.rhs()[0][1])]), 		
+							nltk.Production(nltk.Nonterminal(possible_prod.rhs()[0][1]), [possible_prod.rhs()[0][0]])] 
+						if possible_prod.is_lexical()
+						else [possible_prod]
+						for t in lemmatized_sents(corpus.corpus) # OBS: En lemmatized que devuelve (word,lemma)
+						for possible_prod in t.productions()]
+					for prod in possibles]
 		# prods = sum( # FIXME - Hacerlo inline para evitar 2 recorridas
 				# ([[nltk.Production(prod.lhs(), [nltk.Nonterminal(prod.rhs()[0][1])]), 		
 						# nltk.Production(nltk.Nonterminal(prod.rhs()[0][1]), [prod.rhs()[0][0]])] 
@@ -340,7 +340,6 @@ class PCFG_LEX_VERB(PCFG):
 
     sents = [   u'El juez manifestó su apoyo al gobierno .', # i
                 u'El juez opinó su apoyo al gobierno .', # ii
-
                 u'El juez manifestó que renunciará .', # 4.2.c
             ]                
 
