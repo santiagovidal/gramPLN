@@ -32,7 +32,7 @@ CR = "%s%s%s" % ('\r',' '*50,'\r')
 
 # Solicitar path
 path= raw_input("AnCora path: ")
-if not path: path = '../../ancora-3.0.1es/'
+if not path: path = 'c:/data/ancora-3.0.1es/'
 
 # Auxiliar para tomar tiempo
 def timer(start,end):
@@ -107,8 +107,8 @@ def make(op):
 		for name in case.keys():
 			if name != "Corpus":
 				print name
-				print inst[name].grammar
-				print inst[name].parser
+				print len(inst[name].grammar.productions()), "producciones en grammar"
+				print len(inst[name].parser.grammar().productions()), "producciones usadas en parser"
 				print "---"
 	elif op == 1:
 		cant_oraciones = inst["Corpus"].cant_oraciones()
@@ -122,7 +122,7 @@ def make(op):
 	elif op == 3:
 		largo_promedio_oracion = inst["Corpus"].largo_promedio_oracion()
 		print CR,"Largo promedio de oración:"
-		print largo_promedio_oracion
+		print largo_promedio_oracion, "letras"
 	elif op == 4:
 		palabras_frecs = inst["Corpus"].palabras_frecs()
 		print CR,"Palabras frecuentes:"
@@ -135,30 +135,32 @@ def make(op):
 		arbol_min_nodos = inst["Corpus"].arbol_min_nodos()
 		print CR,"Arbol con minima cantidad de nodos:"
 		print len(arbol_min_nodos.treepositions()), "nodos"
-		arbol_min_nodos.pretty_print() 
+		draw_trees(arbol_min_nodos)
 	elif op == 7:
 		arbol_max_nodos = inst["Corpus"].arbol_max_nodos()
 		print CR,"Arbol con maxima cantidad de nodos:"
 		print len(arbol_max_nodos.treepositions()), "nodos"
-		# arbol_max_nodos.pretty_print() 
+		draw_trees(arbol_max_nodos) 
 	elif op == 8:
 		lema = raw_input('\r'+' '*20+'\rLema > ')
 		if not lema: lema = "mostrar"
+		print "Procesando..."
 		arboles_con_lema = inst["Corpus"].arboles_con_lema(lema)
 		if arboles_con_lema:
 			print CR,"Arboles con lema \'",lema,"\'"
 			print len(arboles_con_lema), "arboles"
-			print "** Ejemplo **"
+			if raw_input("Dibujar? [s/n] ") == 's':draw_trees(*arboles_con_lema)
+			print "** Ejemplo oracion **"
 			print ' '.join(arboles_con_lema[randint(0,len(arboles_con_lema)-1)].leaves())
 		else: print CR,"No hay arboles con lema \'",lema,"\'"
 	elif op == 9:
-		print len(inst["PCFG"].reglas_no_lexicas()), "reglas no lexicas"
+		print CR,len(inst["PCFG"].reglas_no_lexicas()), "reglas no lexicas"
 	elif op == 10:
-		print len(inst["PCFG"].categorias_lexicas()), "categorias lexicas"
+		print CR,len(inst["PCFG"].categorias_lexicas()), "categorias lexicas"
 	elif op == 11:
-		cat = raw_input('\r'+' '*20+'\Categoria > ')
+		cat = raw_input(CR+'Categoria > ')
 		if not cat: cat = "vmip3s0"
-		print len(inst["PCFG"].reglas_lexicas(cat)), "reglas lexicas con categoria \'",cat,"\'"
+		print CR,len(inst["PCFG"].reglas_lexicas(cat)), "reglas lexicas con categoria \'",cat,"\'"
 	elif op == 12:
 		sent = inst["PCFG"].sents[0]
 		parsed = inst["PCFG"].parse(sent)
@@ -200,7 +202,7 @@ def make(op):
 		parsed = inst["PCFG_LEX_VERB"].parse(sent)
 	else:
 		print "Comando no valido!"
-	if op in range(12,24):
+	if op in range(12,25):
 		parsed = list(parsed)
 		# parsed = [t for t in parsed]
 		print CR,"Oracion:\n%s\n" % sent
@@ -208,8 +210,7 @@ def make(op):
 		for i,parse in enumerate(parsed):
 			print "************* [%i] *************" % (i+1)
 			print parse
-			print "Graficando..."
-			draw_trees(parse)
+			if raw_input("Dibujar? [s/n] ") == 's':draw_trees(parse)
 		
 # Principal
 while True:
@@ -219,8 +220,6 @@ while True:
 	if not op: break
 	op = int(op)
 	print CR,"Procesando...",
-	try:
-		make(op)
-	except Exception, e:
-		print "Error:",e
+	try: make(op)
+	except Exception, e: print "Error:",e
 	raw_input("\nEnter para continuar...")

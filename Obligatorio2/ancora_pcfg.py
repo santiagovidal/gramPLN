@@ -38,38 +38,37 @@ sys.setdefaultencoding('utf-8')
 #############
 def lemmatized_sents(corpus,fileids=None):
 	"""
-	Retorna arboles cuyas hojas son parejas (word,lemma)
+	Retorna árboles cuyas hojas son parejas (word,lemma)
 	"""
 	from nltk import tree
 	from nltk.corpus.reader.util import concat
 	def lemmatized(element):
 		if element:
 			subtrees = map(lemmatized, element)
-			subtrees = [t for t in subtrees if t is not None]
+			subtrees = [t for t in subtrees if t]
 			return tree.Tree(element.tag, subtrees)
-		else:
-			if element.get('elliptic') == 'yes':
-				return None
-			else:
-				return tree.Tree(element.get('pos') or element.get('ne') or 'unk', [(element.get('wd'),element.get('lem'))])
-	if not fileids:
-		fileids = corpus.xmlreader.fileids()
+		elif element.get('elliptic') == 'yes': return None
+		else: return tree.Tree(element.get('pos') or element.get('ne') or 'unk', [(element.get('wd'),element.get('lem'))])
+	if not fileids: fileids = corpus.xmlreader.fileids()
 	return LazyMap(lemmatized, concat([list(corpus.xmlreader.xml(fileid)) for fileid in fileids]))
 
 def lexicalize(tree, grup=None):
-    if not isinstance(tree, tuple):
-        new_tree = nltk.Tree(tree.label(), [])
-        if len(tree) == 1 and isinstance(tree[0], tuple):
-            new_tree.set_label(u"%s-%s"%(tree.label(),tree[0][1]))
-        elif grup and tree.label() == grup:
-            verbs_pos = filter(lambda pos: pos[1][0] == grup[5], tree.pos()) # Devuelve una lista de ((palabra,lema),cat) siendo cat un verbo
-            lemmas = map(lambda x: x[0][1], verbs_pos) #Devuelve una lista de lemas de verbos
-            lemmas = "-".join(lemmas)
-            new_tree.set_label(u"%s-%s"%(tree.label(),lemmas))
-        for child in tree:
-            new_tree.append(lexicalize(child,grup))
-        return new_tree
-    else: return tree[0]
+	"""
+	Lexicaliza un árbol en el primer nivel y opcionalmente en algún grupo
+	"""
+	if not isinstance(tree, tuple):
+		new_tree = nltk.Tree(tree.label(), [])
+		if len(tree) == 1 and isinstance(tree[0], tuple):
+			new_tree.set_label(u"%s-%s"%(tree.label(),tree[0][1]))
+		elif grup and tree.label() == grup:
+			verbs_pos = filter(lambda pos: pos[1][0] == grup[5], tree.pos()) # Devuelve una lista de ((palabra,lema),cat) siendo cat un verbo
+			lemmas = map(lambda x: x[0][1], verbs_pos) # Devuelve una lista de lemas de verbos
+			lemmas = "-".join(lemmas)
+			new_tree.set_label(u"%s-%s"%(tree.label(),lemmas))
+		for child in tree:
+			new_tree.append(lexicalize(child,grup))
+		return new_tree
+	else: return tree[0]
 
 
 # Parte 1 - Corpus
@@ -120,8 +119,7 @@ class Corpus:
         tokens = self.corpus.tagged_words()
         dictionary = defaultdict(lambda: 0)
         for (word,_) in tokens:
-            if not word: # OBS - Hay word = None
-                continue
+            if not word: continue # OBS - Hay word = None
             dictionary[word.lower()] += 1
         return dictionary
 
@@ -171,7 +169,6 @@ class Corpus:
 		"""
 		parsed = self.corpus.parsed_sents()
 		lemmatized = lemmatized_sents(self.corpus)
-		
 		return map(lambda x:x[0], 
 					filter( lambda x: any([lem == lema for (_,lem) in x[1].leaves()]), 
 							zip(parsed,lemmatized)))   
@@ -179,7 +176,6 @@ class Corpus:
 		
 # Parte 2 - PCFG y Parsing
 ###########################
-
 
 class PCFG:
     """
@@ -219,8 +215,6 @@ class PCFG:
         """
         Retorna las categorías léxicas (se infieren de las reglas léxicas).
         """
-        # Primero filtra las reglas lexicas, y despues se queda con el lado izquierdo de la regla
-        # O sea el "lhs"
         return map(lambda x: x.lhs(), filter(lambda rule: rule.is_lexical(), self.grammar.productions()))
 
     # c
@@ -249,7 +243,6 @@ class PCFG:
 # Parte 3 - PCFG con palabras desconocidas
 ##########################################
 
-
 class PCFG_UNK(PCFG):
     """
     Clase de funcionalidades sobre PCFG de AnCora con UNK words.
@@ -270,7 +263,6 @@ class PCFG_UNK(PCFG):
 					yield nltk.Production(prod.lhs(),["UNK"])
 				else: yield prod
 		prods = sum((list(induce_unk(t)) for t in corpus.corpus.parsed_sents()), [])
-		
 		S = nltk.Nonterminal('sentence')
 		return nltk.induce_pcfg(S, prods)
 
@@ -305,7 +297,6 @@ class PCFG_LEX(PCFG):
 		Induce PCFG del corpus considerando lexicalización en primer nivel.
 		"""
 		prods = sum((lexicalize(t).productions() for t in lemmatized_sents(corpus.corpus)), [])
-		
 		S = nltk.Nonterminal('sentence')
 		return nltk.induce_pcfg(S, prods)
 
@@ -325,12 +316,6 @@ class PCFG_LEX_VERB(PCFG):
 		"""
 		Induce PCFG del corpus considerando lexicalización en primer nivel y grupos verbales.
 		"""
-		prods = sum((lexicalize(t, grup="grup.verb").productions() for t in lemmatized_sents(corpus.corpus)), [])
-					
+		prods = sum((lexicalize(t, grup="grup.verb").productions() for t in lemmatized_sents(corpus.corpus)), [])			
 		S = nltk.Nonterminal('sentence')
 		return nltk.induce_pcfg(S, prods)
-
-
-# FIXME - http://www.cs.famaf.unc.edu.ar/~francolq/jcc
-# der = [p for p in prods if any(map(lambda x:str(x)=="grup.verb",p.rhs()))] 
-# izq = [p for p in prods if str(p.lhs())[:9]=="grup.verb"]
